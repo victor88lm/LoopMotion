@@ -1,0 +1,8 @@
+.description {
+    word-wrap: break-word; /* Permite el ajuste de línea */
+    overflow: hidden; /* Evita que el texto se desborde del contenedor */
+    text-overflow: ellipsis; /* Añade '...' si el texto es demasiado largo */
+    max-height: 5em; /* Limita la altura máxima a un valor cómodo, ajustable */
+    line-height: 1.5em; /* Espacio entre líneas, ajustable */
+  }
+  

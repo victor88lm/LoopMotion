@@ -1,0 +1,137 @@
+<!-- Navbar principal -->
+<nav id="navbar" class="fixed top-0 left-0 w-full z-50 transition-all duration-300 font-bold"
+  [ngClass]="{'bg-white shadow-md': isScrolled, 'bg-transparent': !isScrolled}">
+  <div class="container mx-auto px-4">
+    <div class="flex items-center justify-between h-20">
+      <!-- Logo -->
+      <div class="flex-shrink-0">
+        <a href="/" class="flex-shrink-0">
+          <img src="img/Logo.avif" alt="Logo" class="h-11 w-auto">
+        </a>
+      </div>
+
+      <!-- Enlaces de navegación - Desktop -->
+      <div class="hidden lg:flex items-center space-x-8 ">
+        <a routerLink="" routerLinkActive="active" class="nav-link group">
+          <span class="text-gray-800 group-hover:text-blue-600 active:text-blue-600 transition-colors duration-200">
+            Inicio
+          </span>
+          <span class="block h-0.5 w-0 group-hover:w-full active:w-full transition-all duration-300 bg-blue-600"></span>
+        </a>
+        <a routerLink="services" class="nav-link group">
+          <span class="text-gray-800 group-hover:text-blue-600 transition-colors duration-200">Servicios</span>
+          <span class="block h-0.5 w-0 group-hover:w-full transition-all duration-300 bg-blue-600"></span>
+        </a>
+        <a routerLink="pricing" class="nav-link group">
+          <span class="text-gray-800 group-hover:text-blue-600 transition-colors duration-200">Planes</span>
+          <span class="block h-0.5 w-0 group-hover:w-full transition-all duration-300 bg-blue-600"></span>
+        </a>
+        <a routerLink="about" class="nav-link group">
+          <span class="text-gray-800 group-hover:text-blue-600 transition-colors duration-200">Nosotros</span>
+          <span class="block h-0.5 w-0 group-hover:w-full transition-all duration-300 bg-blue-600"></span>
+        </a>
+        <a routerLink="portfolio" class="nav-link group">
+          <span class="text-gray-800  group-hover:text-blue-600 transition-colors duration-200">Portafolio</span>
+          <span class="block h-0.5 w-0 group-hover:w-full transition-all duration-300 bg-blue-600"></span>
+        </a>
+        <a routerLink="contact" class="nav-link group">
+          <span class="text-gray-800  group-hover:text-blue-600 transition-colors duration-200">Contactanos</span>
+          <span class="block h-0.5 w-0 group-hover:w-full transition-all duration-300 bg-blue-600"></span>
+        </a>
+      </div>
+
+      <!-- Contenedor derecho: Redes sociales y CTA -->
+      <div class="hidden lg:flex items-center space-x-6">
+        <!-- CTA Button -->
+        <button routerLink="cotizacion"
+          class="inline-flex items-center px-4 py-2 border border-blue-600 text-blue-600 rounded-lg transition duration-200 hover:bg-blue-600 hover:text-white">
+          <span>Solicitar Cotización</span>
+          <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Botón menú móvil -->
+      <button (click)="toggleMenu()" class="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+        aria-label="Abrir menú de navegación">
+        <svg class="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+        </svg>
+      </button>
+
+    </div>
+  </div>
+</nav>
+
+<!-- Menú móvil -->
+<div class="lg:hidden">
+  <!-- Overlay -->
+  <div *ngIf="isOpen" class="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 transition-opacity duration-300"
+    (click)="toggleMenu()">
+  </div>
+
+  <!-- Panel lateral -->
+  <div [ngClass]="{'translate-x-0': isOpen, '-translate-x-full': !isOpen}"
+    class="fixed top-0 left-0 bottom-0 w-full max-w-xs bg-white shadow-xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col">
+
+    <!-- Header del panel -->
+    <div class="flex items-center justify-between p-4 border-b">
+      <img src="img/Logo.avif" alt="Logo" class="h-11 w-auto">
+      <button (click)="toggleMenu()" class="p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200">
+      </button>
+    </div>
+
+    <!-- Contenido del panel -->
+    <div class="flex-1 overflow-y-auto px-4 py-6">
+      <nav class="space-y-1">
+        <a routerLink="/"
+          class="block px-4 py-3 text-gray-800 hover:bg-gray-50 rounded-lg transition-colors duration-200">Inicio</a>
+        <a routerLink="services"
+          class="block px-4 py-3 text-gray-800 hover:bg-gray-50 rounded-lg transition-colors duration-200">Servicios</a>
+        <a routerLink="pricing"
+          class="block px-4 py-3 text-gray-800 hover:bg-gray-50 rounded-lg transition-colors duration-200">Planes</a>
+        <a routerLink="about"
+          class="block px-4 py-3 text-gray-800 hover:bg-gray-50 rounded-lg transition-colors duration-200">Nosotros</a>
+        <a routerLink="portfolio"
+          class="block px-4 py-3 text-gray-800 hover:bg-gray-50 rounded-lg transition-colors duration-200">Portafolio</a>
+      </nav>
+
+      <!-- CTA Móvil -->
+      <div class="mt-6 px-4">
+        <button routerLink="cotizacion"
+          class="w-full px-4 py-3 bg-blue-600 text-white rounded-lg  hover:bg-blue-700 transition-colors duration-200">
+          Solicitar Cotización
+        </button>
+      </div>
+    </div>
+
+    <!-- Footer del panel -->
+    <div class="p-4 border-t bg-gray-50">
+      <div class="flex justify-center space-x-6 mb-4">
+        <a href="https://www.facebook.com/people/LoopMotion/61572987884030/" aria-label="facebook" target="_blank"
+          class="text-gray-400 hover:text-blue-600 transition-colors duration-200">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <path
+              d="M9 8H6v4h3v12h5V12h3.642L18 8h-4V6.333C14 5.378 14.192 5 15.115 5H18V0h-3.808C10.596 0 9 1.583 9 4.615V8z" />
+          </svg>
+        </a>
+        <a href="https://www.instagram.com/loopmotion_studio/" aria-label="instagram" target="_blank"
+          class="text-gray-400 hover:text-blue-600 transition-colors duration-200">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <path
+              d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
+          </svg>
+        </a>
+        <a href="https://x.com/_LoopMotion" aria-label="twitter" target="_blank"
+          class="text-gray-400 hover:text-blue-600 transition-colors duration-200">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <path
+              d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+          </svg>
+        </a>
+      </div>
+      <p class="text-sm text-gray-500 text-center">&copy; 2025 LoopMotion. Todos los derechos reservados.</p>
+    </div>
+  </div>
+</div>

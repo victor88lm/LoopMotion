@@ -1,0 +1,465 @@
+<!-- dashboard.component.html -->
+<div class="min-h-screen bg-gray-50 relative">
+    <!-- Overlay para móvil cuando el sidebar está abierto -->
+    <div *ngIf="isSidebarOpen" class="fixed inset-0 bg-gray-600 bg-opacity-50 transition-opacity md:hidden z-20"
+        (click)="toggleSidebar()">
+    </div>
+
+    <!-- Sidebar -->
+    <aside
+        class="fixed top-0 left-0 h-screen bg-white shadow-lg transform transition-transform duration-300 ease-in-out z-30"
+        [ngClass]="{'translate-x-0 w-64': isSidebarOpen || windowWidth >= 768, '-translate-x-full w-64 md:translate-x-0': !isSidebarOpen}">
+
+        <!-- Logo y Header -->
+        <div class="p-6 bg-gradient-to-r from-blue-600 to-blue-700">
+            <img src="/img/Logo.avif" alt="LoopMotion Logo" class="h-12 mx-auto mb-4 brightness-0 invert">
+            <h2 class="text-xl font-bold text-white text-center">Panel de Control</h2>
+        </div>
+
+        <!-- Perfil del Admin -->
+        <div class="px-6 py-4 border-b border-gray-200">
+            <div class="flex items-center space-x-3">
+              <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                <img src="https://img.icons8.com/fluency/48/administrator-male.png" class="w-6 h-6">
+              </div>
+              <div>
+                <p class="text-sm font-medium text-gray-900">{{ userName || 'Cargando...' }}</p>
+                <p class="text-xs text-gray-500">{{ userEmail || 'Cargando...' }}</p>
+              </div>
+            </div>
+            <button 
+            (click)="logout()"
+            class="mt-4 w-full flex items-center justify-center px-4 py-2 text-sm text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors">
+            <img src="https://img.icons8.com/fluency/48/exit.png" class="w-4 h-4 mr-2">
+            Cerrar Sesión
+        </button>
+          </div>
+
+        <!-- Navegación -->
+        <nav class="mt-6 px-4">
+            <div class="space-y-2">
+                <button (click)="changeView('dashboard')"
+                    class="w-full flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-blue-50 transition-colors"
+                    [ngClass]="{'bg-blue-50 text-blue-600': currentView === 'dashboard'}">
+                    <img src="https://img.icons8.com/fluency/48/dashboard.png" class="w-5 h-5 mr-3">
+                    <span class="font-medium">Dashboard</span>
+                </button>
+
+                <button (click)="changeView('contacts')"
+                    class="w-full flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-blue-50 transition-colors"
+                    [ngClass]="{'bg-blue-50 text-blue-600': currentView === 'contacts'}">
+                    <img src="https://img.icons8.com/fluency/48/communication.png" class="w-5 h-5 mr-3">
+                    <span class="font-medium">Contactos</span>
+                    <span class="ml-auto bg-blue-100 text-blue-600 px-2 py-1 rounded-full text-xs">
+                        {{contacts.length}}
+                    </span>
+                </button>
+
+                <button (click)="changeView('quotations')"
+                    class="w-full flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-blue-50 transition-colors"
+                    [ngClass]="{'bg-blue-50 text-blue-600': currentView === 'quotations'}">
+                    <img src="https://img.icons8.com/fluency/48/documents.png" class="w-5 h-5 mr-3">
+                    <span class="font-medium">Cotizaciones</span>
+                    <span class="ml-auto bg-blue-100 text-blue-600 px-2 py-1 rounded-full text-xs">
+                        {{quotations.length}}
+                    </span>
+                </button>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="transition-all duration-300 ease-in-out" [ngClass]="{'md:ml-64': isSidebarOpen || windowWidth >= 768}">
+        <!-- Top Bar -->
+        <header class="bg-white shadow-sm border-b border-gray-200">
+            <div class="px-4 sm:px-6 lg:px-8 py-4 flex items-center">
+                <button class="md:hidden mr-4" (click)="toggleSidebar()">
+                    <img src="https://img.icons8.com/fluency/48/menu.png" class="w-6 h-6">
+                </button>
+                <h1 class="text-lg sm:text-xl font-semibold text-gray-800">
+                    {{currentView === 'dashboard' ? 'Dashboard' :
+                    currentView === 'contacts' ? 'Contactos' :
+                    currentView === 'quotations' ? 'Cotizaciones' : 'Detalles'}}
+                </h1>
+            </div>
+        </header>
+
+        <!-- Content Area -->
+        <main class="p-4 sm:p-6 lg:p-8">
+            <!-- Dashboard View -->
+            <div *ngIf="currentView === 'dashboard'" class="space-y-6">
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-500">Total Contactos</p>
+                                <p class="text-2xl font-bold text-gray-900 mt-1">{{contacts.length}}</p>
+                            </div>
+                            <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                                <img src="https://img.icons8.com/fluency/48/communication.png" class="w-6 h-6">
+                            </div>
+                        </div>
+                        <div class="mt-4 flex items-center text-sm">
+                            <span class="text-green-500 flex items-center">
+                                <img src="https://img.icons8.com/fluency/48/up.png" class="w-4 h-4 mr-1">
+                                12%
+                            </span>
+                            <span class="text-gray-400 ml-2">vs mes anterior</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-500">Cotizaciones</p>
+                                <p class="text-2xl font-bold text-gray-900 mt-1">{{quotations.length}}</p>
+                            </div>
+                            <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                                <img src="https://img.icons8.com/fluency/48/documents.png" class="w-6 h-6">
+                            </div>
+                        </div>
+                        <div class="mt-4 flex items-center text-sm">
+                            <span class="text-green-500 flex items-center">
+                                <img src="https://img.icons8.com/fluency/48/up.png" class="w-4 h-4 mr-1">
+                                8%
+                            </span>
+                            <span class="text-gray-400 ml-2">vs mes anterior</span>
+                        </div>
+                    </div>
+
+                    <!-- Agrega más cards de estadísticas aquí -->
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="p-6">
+                        <h2 class="text-lg font-semibold text-gray-900">Actividad Reciente</h2>
+                    </div>
+                    <div class="border-t border-gray-200">
+                        <div class="divide-y divide-gray-200">
+                            <div *ngFor="let quote of quotations.slice(0,5)" class="p-6 hover:bg-gray-50">
+                                <div class="flex items-center">
+                                    <div
+                                        class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-4">
+                                        <img src="https://img.icons8.com/fluency/48/documents.png" class="w-5 h-5">
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-900">
+                                            Nueva cotización de {{quote.personalInfo.company}}
+                                        </p>
+                                        <p class="text-sm text-gray-500">
+                                            Proyecto: {{quote.projectInfo.projectType}}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contacts View -->
+            <div *ngIf="currentView === 'contacts'" class="space-y-6">
+                <!-- Header with search -->
+                <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div>
+                            <h2 class="text-lg font-semibold text-gray-900">Mensajes de Contacto</h2>
+                            <p class="text-sm text-gray-500">{{contacts.length}} mensajes recibidos</p>
+                        </div>
+                        <div class="w-full sm:w-auto">
+                            <div class="relative">
+                                <input type="text" placeholder="Buscar mensajes..." [(ngModel)]="searchText" 
+                                class="w-full sm:w-64 pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <img src="https://img.icons8.com/fluency/48/search.png"
+                                class="w-5 h-5 absolute left-3 top-2.5">                            
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Cards -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div *ngFor="let contact of filteredContacts()"
+                        class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-grow">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                        <span
+                                            class="text-blue-600 font-semibold">{{contact.name.charAt(0).toUpperCase()}}</span>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-lg font-semibold text-gray-900">{{contact.name}}</h3>
+                                        <p class="text-sm text-gray-500">{{contact.email}}</p>
+                                    </div>
+                                </div>
+                                <div class="mt-4">
+                                    <p class="text-gray-600">{{contact.message}}</p>
+                                </div>
+                            </div>
+                            <button class="p-2 hover:bg-gray-100 rounded-full">
+                                <img src="https://img.icons8.com/fluency/48/more.png" class="w-5 h-5">
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quotations View -->
+            <div *ngIf="currentView === 'quotations'" class="space-y-6">
+                <!-- Header with filters -->
+                <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div>
+                            <h2 class="text-lg font-semibold text-gray-900">Solicitudes de Cotización</h2>
+                            <p class="text-sm text-gray-500">{{quotations.length}} cotizaciones pendientes</p>
+                        </div>
+                        <div class="flex flex-col sm:flex-row gap-2">
+                            <!-- <select
+                                class="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option>Todos los estados</option>
+                                <option>Aceptadas</option>
+                                <option>Rechazadas</option>
+                            </select> -->
+                            <button
+                                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                                Exportar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quotations List -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="grid divide-y divide-gray-200">
+                        <div *ngFor="let quote of quotations" (click)="showQuotationDetail(quote)"
+                            class="p-4 sm:p-6 hover:bg-gray-50 cursor-pointer transition-colors">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                <div class="flex items-center space-x-4">
+                                    <div
+                                        class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-purple-100 flex-shrink-0 flex items-center justify-center">
+                                        <img src="https://img.icons8.com/fluency/48/document.png"
+                                            class="w-5 h-5 sm:w-6 sm:h-6">
+                                    </div>
+                                    <div class="min-w-0">
+                                        <h3 class="text-base sm:text-lg font-semibold text-gray-900 truncate">
+                                            {{quote.personalInfo.company}}</h3>
+                                        <p class="text-xs sm:text-sm text-gray-500 truncate">{{quote.personalInfo.name}}
+                                            • {{quote.personalInfo.email}}</p>
+                                    </div>
+                                </div>
+                                <div class="flex flex-row sm:flex-col items-center sm:items-end gap-2 sm:gap-1">
+                                    <span
+                                        class="px-2 sm:px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs sm:text-sm whitespace-nowrap">
+                                        {{quote.projectInfo.projectType}}
+                                    </span>
+                                    <p class="text-xs sm:text-sm text-gray-500">Presupuesto: {{quote.budgetInfo.budget}}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quotation Detail View -->
+            <div *ngIf="currentView === 'quotation-detail' && selectedQuotation" class="space-y-6">
+                <!-- Header -->
+                <div class="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+                        <div class="flex items-center space-x-4">
+                            <button (click)="goBack()" class="p-2 hover:bg-gray-100 rounded-full">
+                                <img src="https://img.icons8.com/fluency/48/back.png" class="w-5 h-5">
+                            </button>
+                            <div>
+                                <h2 class="text-lg font-semibold text-gray-900">Detalles de Cotización</h2>
+                                <p class="text-sm text-gray-500 truncate">{{selectedQuotation.personalInfo.company}}</p>
+                            </div>
+                        </div>
+                        <!-- <div class="flex gap-2 sm:ml-auto">
+                            <button
+                            (click)="showConfirmation('reject')"
+                            [disabled]="selectedQuotation?.status === 'rejected'"
+                            class="flex-1 sm:flex-none px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                            <img 
+                                *ngIf="selectedQuotation?.status === 'rejected'"
+                                src="https://img.icons8.com/fluency/48/cancel.png" 
+                                class="w-4 h-4">
+                            Rechazar
+                        </button>
+                        <button
+                        (click)="showConfirmation('approve')"
+                        [disabled]="selectedQuotation?.status === 'approved'"
+                        class="flex-1 sm:flex-none px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                        <img 
+                            *ngIf="selectedQuotation?.status === 'approved'"
+                            src="https://img.icons8.com/fluency/48/checkmark.png" 
+                            class="w-4 h-4 brightness-0 invert">
+                        Aprobar
+                    </button>
+                        </div> -->
+                    </div>
+                    
+                    
+                </div>
+
+                
+                <!-- Content Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                    <!-- Información Personal -->
+                    <div class="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100">
+                        <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-4">Información Personal</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <p class="text-sm text-gray-500">Nombre</p>
+                                <p class="font-medium text-gray-900">{{selectedQuotation.personalInfo.name}}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Empresa</p>
+                                <p class="font-medium text-gray-900">{{selectedQuotation.personalInfo.company}}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Email</p>
+                                <p class="font-medium text-gray-900">{{selectedQuotation.personalInfo.email}}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Teléfono</p>
+                                <p class="font-medium text-gray-900">{{selectedQuotation.personalInfo.phone}}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Industria</p>
+                                <p class="font-medium text-gray-900">{{selectedQuotation.personalInfo.industry}}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Información del Proyecto -->
+                    <div class="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100">
+                        <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-4">Información del Proyecto</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <p class="text-sm text-gray-500">Tipo de Proyecto</p>
+                                <p class="font-medium text-gray-900">{{selectedQuotation.projectInfo.projectType}}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Descripción</p>
+                                <p class="font-medium text-gray-900 break-words">
+                                    {{selectedQuotation.projectInfo.description}}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Características</p>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+                                    <div *ngFor="let feature of selectedQuotation.projectInfo.features; let i = index"
+                                        class="flex items-center space-x-2">
+                                        <span class="w-3 sm:w-4 h-3 sm:h-4 rounded-full flex-shrink-0"
+                                            [ngClass]="feature ? 'bg-green-500' : 'bg-red-500'"></span>
+                                        <span class="text-xs sm:text-sm text-gray-600">Característica {{i + 1}}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- Información Técnica y Presupuesto -->
+                    <div class="space-y-4 sm:space-y-6 md:col-span-2 lg:col-span-1">
+                        <!-- Presupuesto -->
+                        <div class="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100">
+                            <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-4">Información del
+                                Presupuesto</h3>
+                            <div class="grid sm:grid-cols-2 lg:grid-cols-1 gap-4">
+                                <div>
+                                    <p class="text-sm text-gray-500">Presupuesto</p>
+                                    <p class="font-medium text-gray-900">{{selectedQuotation.budgetInfo.budget}}</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500">Fecha de Inicio</p>
+                                    <p class="font-medium text-gray-900">{{selectedQuotation.budgetInfo.startDate}}</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500">Plazo</p>
+                                    <p class="font-medium text-gray-900">{{selectedQuotation.budgetInfo.timeframe}}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Información Técnica -->
+                        <div class="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100">
+                            <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-4">Información Técnica</h3>
+                            <div class="space-y-4">
+                                <div class="grid grid-cols-2 gap-3 sm:gap-4">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="w-3 sm:w-4 h-3 sm:h-4 rounded-full flex-shrink-0"
+                                            [ngClass]="selectedQuotation.technicalInfo.hasContent ? 'bg-green-500' : 'bg-red-500'"></span>
+                                        <span class="text-xs sm:text-sm text-gray-600">Contenido</span>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="w-4 h-4 rounded-full"
+                                            [ngClass]="selectedQuotation.technicalInfo.hasDomain ? 'bg-green-500' : 'bg-red-500'"></span>
+                                        <span class="text-sm text-gray-600">Dominio</span>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="w-4 h-4 rounded-full"
+                                            [ngClass]="selectedQuotation.technicalInfo.hasHosting ? 'bg-green-500' : 'bg-red-500'"></span>
+                                        <span class="text-sm text-gray-600">Hosting</span>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="w-4 h-4 rounded-full"
+                                            [ngClass]="selectedQuotation.technicalInfo.hasLogo ? 'bg-green-500' : 'bg-red-500'"></span>
+                                        <span class="text-sm text-gray-600">Logo</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500">Comentarios Adicionales</p>
+                                    <p class="font-medium text-gray-900">
+                                        {{selectedQuotation.technicalInfo.additionalComments}}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- Modal de Confirmación -->
+<div *ngIf="showConfirmModal" 
+     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-xl shadow-xl p-6 max-w-sm w-full">
+        <div class="flex items-center gap-3 mb-4">
+            <img 
+                [src]="confirmAction === 'approve' ? 
+                       'https://img.icons8.com/fluency/48/info-popup.png' : 
+                       'https://img.icons8.com/fluency/48/warning-shield.png'"
+                class="w-8 h-8">
+            <h3 class="text-lg font-semibold text-gray-900">
+                Confirmar {{ confirmAction === 'approve' ? 'Aprobación' : 'Rechazo' }}
+            </h3>
+        </div>
+        
+        <p class="text-gray-600 mb-6">
+            ¿Estás seguro de que deseas {{ confirmAction === 'approve' ? 'aprobar' : 'rechazar' }} 
+            la cotización de <span class="font-medium">{{selectedQuotation.personalInfo.company}}</span>?
+            Esta acción no se puede deshacer.
+        </p>
+
+        <div class="flex justify-end gap-3">
+            <button 
+                (click)="cancelConfirmation()"
+                class="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                Cancelar
+            </button>
+            <button 
+                (click)="confirmAction === 'approve' ? approveQuotation() : rejectQuotation()"
+                [ngClass]="confirmAction === 'approve' ? 
+                          'bg-blue-600 hover:bg-blue-700' : 
+                          'bg-red-600 hover:bg-red-700'"
+                class="px-4 py-2 text-white rounded-lg transition-colors">
+                {{ confirmAction === 'approve' ? 'Aprobar' : 'Rechazar' }}
+            </button>
+        </div>
+    </div>
+</div>

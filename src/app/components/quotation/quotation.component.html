@@ -1,0 +1,292 @@
+<!-- quotation.component.html -->
+<section class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 py-20">
+  <div class="container mx-auto px-4">
+    <!-- Header -->
+    <div class="max-w-4xl mx-auto mb-12 text-center">
+      <h1 class="text-4xl font-bold text-gray-900 mb-4">Solicita tu Cotización</h1>
+      <p class="text-lg text-gray-600">
+        Cuéntanos sobre tu proyecto y te ayudaremos a hacerlo realidad
+      </p>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="max-w-4xl mx-auto mb-12">
+      <div class="flex justify-between mb-2">
+        <span class="text-sm text-gray-600">Paso {{currentStep}} de {{totalSteps}}</span>
+        <span class="text-sm text-blue-600">{{getProgressPercentage()}}% Completado</span>
+      </div>
+      <div class="h-2 bg-gray-200 rounded-full">
+        <div class="h-full bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full transition-all duration-500"
+          [style.width]="getProgressPercentage() + '%'">
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Container -->
+    <div class="max-w-4xl mx-auto">
+      <form [formGroup]="quotationForm" (ngSubmit)="onSubmit()" class="bg-white rounded-2xl shadow-xl p-8">
+        <!-- Step Title -->
+        <h2 class="text-2xl font-bold text-gray-900 mb-8">{{getStepTitle(currentStep)}}</h2>
+
+        <!-- Step 1: Información Personal -->
+        <div *ngIf="currentStep === 1" formGroupName="personalInfo" class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="form-group">
+              <label class="block text-sm font-medium text-gray-700 mb-2" for="name">
+                Nombre Completo
+              </label>
+              <input type="text" id="name" formControlName="name"
+                class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300"
+                placeholder="Tu nombre">
+              <div
+                *ngIf="quotationForm.get('personalInfo.name')?.touched && quotationForm.get('personalInfo.name')?.invalid"
+                class="text-red-500 text-sm mt-1">
+                Por favor ingresa tu nombre completo
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="block text-sm font-medium text-gray-700 mb-2" for="email">
+                Email Empresarial
+              </label>
+              <input type="email" id="email" formControlName="email"
+                class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300"
+                placeholder="tu@empresa.com">
+              <div
+                *ngIf="quotationForm.get('personalInfo.email')?.touched && quotationForm.get('personalInfo.email')?.invalid"
+                class="text-red-500 text-sm mt-1">
+                Por favor ingresa un email válido
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="block text-sm font-medium text-gray-700 mb-2" for="phone">
+                Teléfono
+              </label>
+              <input type="tel" id="phone" formControlName="phone"
+                class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300"
+                placeholder="+52 123 456 7890">
+            </div>
+
+            <div class="form-group">
+              <label class="block text-sm font-medium text-gray-700 mb-2" for="company">
+                Empresa
+              </label>
+              <input type="text" id="company" formControlName="company"
+                class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300"
+                placeholder="Nombre de tu empresa">
+            </div>
+
+            <div class="form-group md:col-span-2">
+              <label class="block text-sm font-medium text-gray-700 mb-2" for="industry">
+                Industria/Sector
+              </label>
+              <select id="industry" formControlName="industry"
+                class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300">
+                <option value="">Selecciona una industria</option>
+                <option value="technology">Tecnología</option>
+                <option value="retail">Comercio</option>
+                <option value="services">Servicios</option>
+                <option value="education">Educación</option>
+                <option value="healthcare">Salud</option>
+                <option value="other">Otro</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2: Tipo de Proyecto -->
+        <div *ngIf="currentStep === 2" formGroupName="projectInfo" class="space-y-8">
+          <!-- Project Types Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div *ngFor="let type of projectTypes" class="relative">
+              <input type="radio" [id]="type.id" [value]="type.id" formControlName="projectType" class="sr-only peer">
+              <label [for]="type.id" class="block p-6 bg-white border-2 rounded-xl cursor-pointer transition-all duration-300
+                              peer-checked:border-blue-500 peer-checked:bg-blue-50 hover:border-blue-200">
+                <div class="flex items-center space-x-4">
+                  <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                    <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                      <img [src]="'https://img.icons8.com/ios-filled/50/' + type.icon + '.png'" class="w-6 h-6 filter saturate-0 hover:filter-saturate-100 transition-all duration-300" />
+                    </div>
+                                       
+                  </div>
+                  <div>
+                    <h3 class="text-lg font-semibold text-gray-900">{{type.name}}</h3>
+                    <p class="text-sm text-gray-600">{{type.description}}</p>
+                  </div>
+                </div>
+                <div class="absolute top-4 right-4 w-5 h-5 border-2 rounded-full 
+                              peer-checked:border-blue-500 peer-checked:bg-blue-500">
+                  <svg class="w-full h-full text-white scale-0 peer-checked:scale-100 transition-transform duration-300"
+                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Features Selection -->
+          <div class="space-y-4">
+            <h3 class="text-lg font-semibold text-gray-900">Características Deseadas</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div *ngFor="let feature of features; let i = index">
+                <div class="flex items-center space-x-3">
+                  <input type="checkbox" [id]="feature.id" [checked]="featuresFormArray.at(i).value"
+                    (change)="updateFeature(i, $event)"
+                    class="w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                  <div>
+                    <label [for]="feature.id" class="font-medium text-gray-900">{{feature.name}}</label>
+                    <p class="text-sm text-gray-600">{{feature.description}}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Project Description -->
+          <div class="space-y-4">
+            <label class="block text-sm font-medium text-gray-700" for="description">
+              Descripción del Proyecto
+            </label>
+            <textarea id="description" formControlName="description" rows="4"
+              class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300"
+              placeholder="Cuéntanos más sobre tu proyecto..."></textarea>
+            <div
+              *ngIf="quotationForm.get('projectInfo.description')?.touched && quotationForm.get('projectInfo.description')?.invalid"
+              class="text-red-500 text-sm">
+              Por favor proporciona una descripción detallada de tu proyecto
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3: Presupuesto y Tiempo -->
+        <div *ngIf="currentStep === 3" formGroupName="budgetInfo" class="space-y-8">
+          <!-- Budget Range -->
+          <div class="space-y-4">
+            <h3 class="text-lg font-semibold text-gray-900">Rango de Presupuesto (usd)</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div *ngFor="let range of budgetRanges" class="relative">
+                <input type="radio" [id]="range.id" [value]="range.value" formControlName="budget" class="sr-only peer">
+                <label [for]="range.id" class="block p-4 bg-white border-2 rounded-xl cursor-pointer transition-all duration-300
+                           peer-checked:border-blue-500 peer-checked:bg-blue-50 hover:border-blue-200">
+                  <span class="text-lg font-medium text-gray-900">{{range.label}}</span>
+                  <div class="absolute top-4 right-4 w-5 h-5 border-2 rounded-full 
+                           peer-checked:border-blue-500 peer-checked:bg-blue-500">
+                    <svg
+                      class="w-full h-full text-white scale-0 peer-checked:scale-100 transition-transform duration-300"
+                      fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Timeframe -->
+          <div class="space-y-4">
+            <h3 class="text-lg font-semibold text-gray-900">Tiempo de Entrega Deseado</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div *ngFor="let time of timeframes" class="relative">
+                <input type="radio" [id]="time.id" [value]="time.value" formControlName="timeframe"
+                  class="sr-only peer">
+                <label [for]="time.id" class="block p-4 bg-white border-2 rounded-xl cursor-pointer transition-all duration-300
+                           peer-checked:border-blue-500 peer-checked:bg-blue-50 hover:border-blue-200">
+                  <span class="text-lg font-medium text-gray-900">{{time.label}}</span>
+                  <div class="absolute top-4 right-4 w-5 h-5 border-2 rounded-full 
+                           peer-checked:border-blue-500 peer-checked:bg-blue-500">
+                    <svg
+                      class="w-full h-full text-white scale-0 peer-checked:scale-100 transition-transform duration-300"
+                      fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Start Date -->
+          <div class="form-group">
+            <label class="block text-sm font-medium text-gray-700 mb-2" for="startDate">
+              Fecha Deseada de Inicio
+            </label>
+            <input type="date" id="startDate" formControlName="startDate"
+              class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300">
+          </div>
+        </div>
+
+        <!-- Step 4: Detalles Técnicos -->
+        <div *ngIf="currentStep === 4" formGroupName="technicalInfo" class="space-y-8">
+          <!-- Technical Requirements -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="flex items-center space-x-3">
+              <input type="checkbox" id="hasHosting" formControlName="hasHosting"
+                class="w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+              <div>
+                <label for="hasHosting" class="font-medium text-gray-900">¿Ya tienes hosting?</label>
+                <p class="text-sm text-gray-600">Servicio de alojamiento web</p>
+              </div>
+            </div>
+
+            <div class="flex items-center space-x-3">
+              <input type="checkbox" id="hasDomain" formControlName="hasDomain"
+                class="w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+              <div>
+                <label for="hasDomain" class="font-medium text-gray-900">¿Ya tienes dominio?</label>
+                <p class="text-sm text-gray-600">Nombre de tu sitio web</p>
+              </div>
+            </div>
+
+            <div class="flex items-center space-x-3">
+              <input type="checkbox" id="hasLogo" formControlName="hasLogo"
+                class="w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+              <div>
+                <label for="hasLogo" class="font-medium text-gray-900">¿Tienes logo/marca?</label>
+                <p class="text-sm text-gray-600">Identidad visual de tu empresa</p>
+              </div>
+            </div>
+
+            <div class="flex items-center space-x-3">
+              <input type="checkbox" id="hasContent" formControlName="hasContent"
+                class="w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+              <div>
+                <label for="hasContent" class="font-medium text-gray-900">¿Tienes el contenido?</label>
+                <p class="text-sm text-gray-600">Textos e imágenes para tu sitio</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Additional Comments -->
+          <div class="space-y-4">
+            <label class="block text-sm font-medium text-gray-700" for="additionalComments">
+              Comentarios Adicionales
+            </label>
+            <textarea id="additionalComments" formControlName="additionalComments" rows="4"
+              class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300"
+              placeholder="¿Algo más que debamos saber sobre tu proyecto?"></textarea>
+          </div>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="flex justify-between mt-8 pt-6 border-t border-gray-200">
+          <button type="button" *ngIf="currentStep > 1" (click)="previousStep()"
+            class="px-6 py-3 text-blue-600 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors duration-300">
+            Anterior
+          </button>
+          <div class="ml-auto">
+            <button type="button" *ngIf="currentStep < totalSteps" (click)="nextStep()"
+              class="px-6 py-3 text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors duration-300">
+              Siguiente
+            </button>
+            <button type="button" *ngIf="currentStep === totalSteps" (click)="goToSummary()" class="px-6 py-3 text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl 
+                hover:from-blue-700 hover:to-indigo-700 transition-colors duration-300">
+              Revisar Cotización
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>

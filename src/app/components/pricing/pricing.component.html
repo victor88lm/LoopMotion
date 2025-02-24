@@ -1,0 +1,168 @@
+<!-- pricing.component.html -->
+<section class="relative min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 overflow-hidden">
+  <!-- Animated Background Shapes -->
+  <div class="absolute inset-0 overflow-hidden">
+    <div class="absolute top-0 left-0 w-96 h-96 bg-blue-200/20 rounded-full blur-3xl animate-float"></div>
+    <div class="absolute bottom-0 right-0 w-96 h-96 bg-purple-200/20 rounded-full blur-3xl animate-float-delayed"></div>
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-100/20 rounded-full blur-3xl animate-pulse"></div>
+  </div>
+
+  <!-- Header Section -->
+  <div class="relative pt-24 pb-16 text-center">
+    <div class="container mx-auto px-4">
+      <div class="backdrop-blur-lg bg-white/30 rounded-3xl p-8 max-w-4xl mx-auto shadow-xl">
+        <span class="inline-block px-6 py-2 bg-blue-600/10 text-blue-600 rounded-full text-sm font-medium mb-6 backdrop-blur-sm">
+          Planes y Precios
+        </span>
+        <h1 class="text-5xl md:text-6xl font-black text-gray-900 mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
+          Soluciones Digitales para cada Necesidad
+        </h1>
+        <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+          Selecciona el plan que mejor se adapte a tu proyecto. Todos nuestros planes incluyen soporte técnico y garantía de satisfacción.
+        </p>
+      </div>
+
+      <!-- Category Selector -->
+      <div class="flex flex-wrap justify-center gap-4 mt-12 mb-12">
+        <button *ngFor="let category of categories"
+                (click)="selectedCategory = category"
+                [ngClass]="{
+                  'bg-gradient-to-r from-blue-600 to-purple-600 text-white': selectedCategory === category,
+                  'bg-white/80 backdrop-blur-md': selectedCategory !== category
+                }"
+                class="group px-8 py-4 rounded-2xl font-medium shadow-lg hover:shadow-xl transition-all duration-300 flex items-center space-x-3">
+          <div class="w-8 h-8 flex items-center justify-center rounded-lg bg-white/20 group-hover:scale-110 transition-transform duration-300">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="getCategoryIcon(category)"/>
+            </svg>
+          </div>
+          <span>{{category}}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Plans Grid -->
+  <div class="container mx-auto px-4 pb-20">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
+      <div *ngFor="let plan of getFilteredPlans()" 
+           class="group relative backdrop-blur-lg bg-white/80 rounded-3xl p-8 hover:bg-white/90 transition-all duration-500">
+        <!-- Decorative Elements -->
+        <div class="absolute inset-0 bg-gradient-to-br from-blue-100/50 via-transparent to-purple-100/50 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        
+        <!-- Popular Badge -->
+        <div *ngIf="plan.isPopular" 
+             class="absolute -top-4 -right-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-full text-sm font-medium shadow-lg transform rotate-12">
+          Recomendado
+        </div>
+
+        <!-- Content -->
+        <div class="relative z-10">
+          <div class="mb-8">
+            <h3 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 mb-3">
+              {{plan.name}}
+            </h3>
+            <p class="text-gray-600">{{plan.description}}</p>
+          </div>
+
+          <!-- Price -->
+          <div class="mb-8">
+            <div class="flex items-baseline">
+              <span class="text-4xl font-bold text-gray-900">
+                ${{plan.price}} - {{plan.pricedos}}
+                <span class="text-xl font-medium text-gray-600">USD</span>
+              </span>
+              <span class="text-gray-600 ml-2">/{{selectedBillingPeriod}}</span>
+            </div>
+          </div>
+
+          <!-- Features -->
+          <div class="space-y-4 mb-8">
+            <div *ngFor="let feature of plan.features" 
+                 class="group/feature flex items-start space-x-3 p-4 rounded-xl transition-all duration-300"
+                 [ngClass]="{'bg-blue-50/50': feature.included, 'bg-gray-50/50': !feature.included}">
+              <div class="flex-shrink-0 mt-1">
+                <div class="w-6 h-6 rounded-full flex items-center justify-center"
+                     [ngClass]="{'bg-blue-100': feature.included, 'bg-gray-100': !feature.included}">
+                  <svg class="w-4 h-4" 
+                       [ngClass]="{'text-blue-600': feature.included, 'text-gray-400': !feature.included}"
+                       fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          [attr.d]="feature.included ? 'M5 13l4 4L19 7' : 'M6 18L18 6M6 6l12 12'"/>
+                  </svg>
+                </div>
+              </div>
+              <span [ngClass]="{'text-gray-900': feature.included, 'text-gray-500': !feature.included}"
+                    class="text-sm group-hover/feature:translate-x-1 transition-transform duration-300">
+                {{feature.name}}
+              </span>
+            </div>
+          </div>
+
+          <!-- Action Button -->
+          <button (click)="selectPlan()"
+                  class="relative w-full group overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left rounded-xl"></div>
+            <div class="relative px-8 py-4 rounded-xl font-medium border-2 border-blue-600 group-hover:border-transparent transition-colors duration-300">
+              <span class="flex items-center justify-center space-x-2 group-hover:text-white transition-colors duration-300">
+                <span>Seleccionar Plan</span>
+                <svg class="w-5 h-5 transform group-hover:translate-x-1 transition-transform duration-300" 
+                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                </svg>
+              </span>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAQ Section -->
+  <div class="relative py-20 bg-gradient-to-t from-white/80 to-transparent backdrop-blur-sm">
+    <div class="container mx-auto px-4 max-w-4xl">
+      <h2 class="text-3xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 mb-12">
+        Preguntas Frecuentes
+      </h2>
+      
+      <div class="space-y-6">
+        <div *ngFor="let faq of faqs" 
+             class="group backdrop-blur-md bg-white/60 rounded-2xl p-6 hover:bg-white/80 transition-all duration-300 cursor-pointer"
+             (click)="faq.isOpen = !faq.isOpen">
+          <div class="flex justify-between items-center">
+            <h3 class="text-lg font-semibold text-gray-900">{{faq.question}}</h3>
+            <svg class="w-5 h-5 transform transition-transform duration-300"
+                 [ngClass]="{'rotate-180': faq.isOpen}"
+                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </div>
+          <div class="overflow-hidden transition-all duration-300"
+               [ngClass]="{'h-0': !faq.isOpen, 'mt-4': faq.isOpen}">
+            <p class="text-gray-600">{{faq.answer}}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA Section -->
+  <div class="relative bg-gradient-to-r from-blue-600 to-purple-600 py-20">
+    <div class="absolute inset-0 bg-grid-white/10"></div>
+    <div class="container mx-auto px-4 text-center text-white relative z-10">
+      <h2 class="text-4xl font-bold mb-6">¿Listo para transformar tu presencia digital?</h2>
+      <p class="text-xl mb-8 opacity-90">Agenda una llamada gratuita con nuestros expertos para discutir tu proyecto</p>
+      <button (click)="ircontact()" class="group relative px-8 py-4 bg-white text-blue-600 rounded-xl font-medium overflow-hidden">
+        <span class="relative z-10 flex items
+-center space-x-2">
+          <span>Agendar Llamada</span>
+          <svg class="w-5 h-5 transform group-hover:translate-x-1 transition-transform duration-300" 
+               fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+          </svg>
+        </span>
+        <div class="absolute inset-0 bg-gradient-to-r from-blue-50 to-purple-50 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
+      </button>
+    </div>
+  </div>
+</section>

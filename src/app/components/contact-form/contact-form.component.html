@@ -1,0 +1,122 @@
+<!-- contact.component.html -->
+<section class="min-h-screen bg-white py-20 relative overflow-hidden">
+    <!-- Subtle Background Elements -->
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+      <div class="absolute top-0 left-1/4 w-96 h-96 bg-blue-50 rounded-full blur-3xl opacity-60 animate-blob"></div>
+      <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-50 rounded-full blur-3xl opacity-60 animate-blob animation-delay-2000"></div>
+    </div>
+  
+    <div class="container mx-auto px-4 relative z-10">
+      <!-- Header Section -->
+      <div class="max-w-2xl mx-auto mb-16 text-center">
+        <h1 class="text-4xl md:text-5xl font-black mb-6 text-blue-600">
+          Hablemos de tu Proyecto
+        </h1>
+        <p class="text-xl text-gray-600 leading-relaxed">
+          Estamos aquí para convertir tus ideas en realidad. Cuéntanos sobre tu visión y juntos crearemos algo extraordinario.
+        </p>
+      </div>
+  
+      <!-- Contact Form Card -->
+      <div class="max-w-xl mx-auto">
+        <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+          <form [formGroup]="contactForm" (ngSubmit)="onSubmit()" class="p-8">
+            <div class="space-y-6">
+              <!-- Name Input -->
+              <div class="relative">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Nombre</label>
+                <div class="relative">
+                  <input type="text" 
+                         formControlName="name"
+                         class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all duration-300"
+                         placeholder="Tu nombre completo" />
+                  <div class="absolute right-3 top-1/2 -translate-y-1/2">
+                    <svg *ngIf="contactForm.get('name')?.valid && contactForm.get('name')?.touched"
+                         class="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                  </div>
+                </div>
+                <div *ngIf="contactForm.get('name')?.invalid && contactForm.get('name')?.touched"
+                     class="text-red-500 text-sm mt-1 flex items-center space-x-1">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                  <span>El nombre es obligatorio</span>
+                </div>
+              </div>
+  
+              <!-- Email Input -->
+              <div class="relative">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Correo Electrónico</label>
+                <div class="relative">
+                  <input type="email" 
+                         formControlName="email"
+                         class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all duration-300"
+                         placeholder="tu@email.com" />
+                  <div class="absolute right-3 top-1/2 -translate-y-1/2">
+                    <svg *ngIf="contactForm.get('email')?.valid && contactForm.get('email')?.touched"
+                         class="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                  </div>
+                </div>
+                <div *ngIf="contactForm.get('email')?.invalid && contactForm.get('email')?.touched"
+                     class="text-red-500 text-sm mt-1 flex items-center space-x-1">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                  <span>Correo electrónico inválido</span>
+                </div>
+              </div>
+  
+              <!-- Message Input -->
+              <div class="relative">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Mensaje</label>
+                <textarea formControlName="message"
+                          class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all duration-300 min-h-[120px] resize-none"
+                          placeholder="Cuéntanos sobre tu proyecto..."></textarea>
+                <div *ngIf="contactForm.get('message')?.invalid && contactForm.get('message')?.touched"
+                     class="text-red-500 text-sm mt-1 flex items-center space-x-1">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                  <span>El mensaje es obligatorio</span>
+                </div>
+              </div>
+  
+              <!-- Terms Checkbox -->
+<!-- Terms Checkbox - Versión corregida -->
+<div class="relative">
+    <label class="flex items-center space-x-3 cursor-pointer">
+      <input type="checkbox" 
+             formControlName="terms"
+             class="form-checkbox h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500 transition-colors duration-200 cursor-pointer" />
+      <span class="text-sm text-gray-600">
+        Acepto los <a [routerLink]="['/terms']" class="text-blue-600 hover:text-blue-800 font-medium transition-colors duration-300">términos y condiciones</a>
+      </span>
+    </label>
+    <div *ngIf="contactForm.get('terms')?.invalid && contactForm.get('terms')?.touched"
+         class="text-red-500 text-sm mt-1 flex items-center space-x-1">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <span>Debes aceptar los términos</span>
+    </div>
+  </div>
+              <!-- Submit Button -->
+              <button type="submit" 
+                      [disabled]="contactForm.invalid"
+                      class="w-full bg-blue-600 text-white px-8 py-4 rounded-xl font-medium hover:bg-blue-700 transform hover:-translate-y-1 transition-all duration-300 disabled:opacity-50 disabled:hover:transform-none flex items-center justify-center space-x-2">
+                <span>Enviar Mensaje</span>
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                </svg>
+              </button>
+            </div>
+          </form>
+        </div>
+  
+      </div>
+    </div>
+  </section>

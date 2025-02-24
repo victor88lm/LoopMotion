@@ -1,0 +1,18 @@
+.nav-link {
+  @apply relative py-2;
+}
+
+/* Efecto de transición para el navbar al hacer scroll */
+.bg-transparent {
+  background-color: transparent;
+}
+
+.bg-white {
+  background-color: rgba(255, 255, 255, 0.98);
+}
+
+/* Ajustes para el menú móvil */
+.backdrop-blur-sm {
+  backdrop-filter: blur(8px);
+}
+

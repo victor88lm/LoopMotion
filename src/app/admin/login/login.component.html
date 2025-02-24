@@ -1,0 +1,109 @@
+<div class="min-h-screen bg-gradient-to-br from-blue-50 via-blue-50/30 to-blue-100/20 flex items-center justify-center p-4">
+  <div class="relative w-full max-w-sm md:max-w-xl mx-auto">
+    <!-- Elemento decorativo -->
+    <div 
+      [@backgroundAnimation]="isRegistering ? 'register' : 'login'"
+      class="absolute inset-0 bg-gradient-to-r from-blue-300 to-blue-600 shadow-lg transform -skew-y-6 sm:skew-y-0 sm:-rotate-6 sm:rounded-3xl">
+    </div>
+    
+    <!-- Contenedor principal -->
+    <div class="relative px-4 py-8 md:py-10 bg-white shadow-lg sm:rounded-3xl md:px-8 lg:p-12">
+      <div class="w-full max-w-md mx-auto">
+        <div class="divide-y divide-gray-200">
+          <div 
+            [@formAnimation]="isRegistering ? 'register' : 'login'"
+            class="py-6 md:py-8 text-base space-y-4 text-gray-700 sm:text-lg sm:leading-7">
+            
+            <!-- Header -->
+            <div class="text-center mb-6 md:mb-8">
+              <img 
+                src="/img/Logo.avif" 
+                alt="Loopmotion Logo" 
+                class="h-10 md:h-12 mx-auto mb-3 md:mb-4"
+              >
+              <h2 class="text-xl md:text-2xl font-bold text-gray-900 mb-1 md:mb-2">
+                {{ isRegistering ? 'Crea una cuenta' : 'Bienvenido de nuevo' }}
+              </h2>
+              <p class="text-sm md:text-base text-gray-600">
+                {{ isRegistering ? 'Regístrate para empezar' : 'Ingresa tus credenciales para continuar' }}
+              </p>
+            </div>
+
+            <!-- Formulario -->
+            <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-5 md:space-y-6">
+              <!-- Campo Nombre -->
+              <div *ngIf="isRegistering" [@fadeSlide] class="relative">
+                <input 
+                  type="text" 
+                  id="name"
+                  formControlName="name"
+                  class="peer h-10 w-full border-b-2 border-gray-300 text-gray-900 text-sm md:text-base placeholder-transparent focus:outline-none focus:border-blue-600"
+                  placeholder="Nombre" 
+                >
+                <label 
+                  for="name" 
+                  class="absolute left-0 -top-3.5 text-gray-600 text-xs md:text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm"
+                >
+                  Nombre
+                </label>
+              </div>
+
+              <!-- Campo Email -->
+              <div class="relative">
+                <input 
+                  type="email" 
+                  id="email"
+                  formControlName="email"
+                  class="peer h-10 w-full border-b-2 border-gray-300 text-gray-900 text-sm md:text-base placeholder-transparent focus:outline-none focus:border-blue-600"
+                  placeholder="Email" 
+                >
+                <label 
+                  for="email" 
+                  class="absolute left-0 -top-3.5 text-gray-600 text-xs md:text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm"
+                >
+                  Email
+                </label>
+              </div>
+
+              <!-- Campo Contraseña -->
+              <div class="relative">
+                <input 
+                  [type]="showPassword ? 'text' : 'password'"
+                  id="password"
+                  formControlName="password"
+                  class="peer h-10 w-full border-b-2 border-gray-300 text-gray-900 text-sm md:text-base placeholder-transparent focus:outline-none focus:border-blue-600"
+                  placeholder="Contraseña" 
+                >
+                <label 
+                  for="password" 
+                  class="absolute left-0 -top-3.5 text-gray-600 text-xs md:text-sm transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm"
+                >
+                  Contraseña
+                </label>
+              </div>
+
+              <!-- Botón submit -->
+              <div class="pt-2">
+                <button 
+                  type="submit"
+                  [disabled]="!loginForm.valid"
+                  class="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm md:text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200"
+                >
+                  {{ isRegistering ? 'Registrarse' : 'Iniciar sesión' }}
+                </button>
+              </div>
+            </form>
+
+            <!-- Footer -->
+            <p class="mt-6 text-center text-xs md:text-sm text-gray-600">
+              {{ isRegistering ? '¿Ya tienes cuenta?' : '¿No tienes una cuenta?' }}
+              <a (click)="toggleForm()" class="font-medium text-blue-600 hover:text-blue-500 cursor-pointer">
+                {{ isRegistering ? 'Inicia sesión aquí' : 'Regístrate aquí' }}
+              </a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
