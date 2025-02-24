@@ -12,6 +12,7 @@ import { PortfolioComponent } from './components/portfolio/portfolio.component';
 import { LoginComponent } from './admin/login/login.component';
 import { DashboardComponent } from './admin/dashboard/dashboard.component';
 import { AuthGuard } from './core/guards/auth.guard';
+import { FaqComponent } from './components/faq/faq.component';
 
 const routes: Routes = [
   {
@@ -33,6 +34,7 @@ const routes: Routes = [
   { path: 'terms', component: TermsAndConditionsComponent },
   { path: 'portfolio', component: PortfolioComponent },
   { path: 'loop-admin', component: LoginComponent },
+  {path: 'faq', component: FaqComponent},
   // Ruta wildcard para manejar rutas no encontradas
   { path: '**', redirectTo: '' }
 ];

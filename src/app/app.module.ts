@@ -28,6 +28,7 @@ import { AngularFirestoreModule } from '@angular/fire/compat/firestore';
 import { AngularFireStorageModule } from '@angular/fire/compat/storage';
 import { environment } from '../environments/environment';
 import { AuthGuard } from './core/guards/auth.guard';
+import { FaqComponent } from './components/faq/faq.component';
 
 @NgModule({
   declarations: [
@@ -45,7 +46,8 @@ import { AuthGuard } from './core/guards/auth.guard';
     NotificationComponent,
     PortfolioComponent,
     LoginComponent,
-    DashboardComponent
+    DashboardComponent,
+    FaqComponent
   ],
   imports: [
     BrowserModule,
