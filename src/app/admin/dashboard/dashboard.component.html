@@ -44,7 +44,12 @@
                     <img src="https://img.icons8.com/fluency/48/dashboard.png" class="w-5 h-5 mr-3">
                     <span class="font-medium">Dashboard</span>
                 </button>
-
+                <button (click)="changeView('new-project')"
+                    class="w-full flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-blue-50 transition-colors"
+                    [ngClass]="{'bg-blue-50 text-blue-600': currentView === 'new-project'}">
+                    <img src="https://img.icons8.com/fluency/48/add-file.png" class="w-5 h-5 mr-3">
+                    <span class="font-medium">Nuevo proyecto</span>
+                </button>
                 <button (click)="changeView('contacts')"
                     class="w-full flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-blue-50 transition-colors"
                     [ngClass]="{'bg-blue-50 text-blue-600': currentView === 'contacts'}">
@@ -54,7 +59,6 @@
                         {{contacts.length}}
                     </span>
                 </button>
-
                 <button (click)="changeView('quotations')"
                     class="w-full flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-blue-50 transition-colors"
                     [ngClass]="{'bg-blue-50 text-blue-600': currentView === 'quotations'}">
@@ -78,6 +82,7 @@
                 </button>
                 <h1 class="text-lg sm:text-xl font-semibold text-gray-800">
                     {{currentView === 'dashboard' ? 'Dashboard' :
+                    currentView === 'new-project' ? 'Nuevo proyecto | Asignacion de proyecto' :
                     currentView === 'contacts' ? 'Contactos' :
                     currentView === 'quotations' ? 'Cotizaciones' : 'Detalles'}}
                 </h1>
@@ -108,7 +113,6 @@
                             <span class="text-gray-400 ml-2">vs mes anterior</span>
                         </div>
                     </div>
-
                     <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
                         <div class="flex items-center justify-between">
                             <div>
@@ -127,8 +131,46 @@
                             <span class="text-gray-400 ml-2">vs mes anterior</span>
                         </div>
                     </div>
-
-                    <!-- Agrega más cards de estadísticas aquí -->
+                    
+                    <!-- Card de Proyectos Activos -->
+                    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-500">Proyectos Activos</p>
+                                <p class="text-2xl font-bold text-gray-900 mt-1">{{activeProjects.length}}</p>
+                            </div>
+                            <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                                <img src="https://img.icons8.com/fluency/48/project.png" class="w-6 h-6">
+                            </div>
+                        </div>
+                        <div class="mt-4 flex items-center text-sm">
+                            <span class="text-green-500 flex items-center">
+                                <img src="https://img.icons8.com/fluency/48/up.png" class="w-4 h-4 mr-1">
+                                15%
+                            </span>
+                            <span class="text-gray-400 ml-2">vs mes anterior</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Card de Ingresos Totales (Opcional) -->
+                    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-500">Ingresos Totales</p>
+                                <p class="text-2xl font-bold text-gray-900 mt-1">${{totalRevenue.toLocaleString('es-MX')}}</p>
+                            </div>
+                            <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
+                                <img src="https://img.icons8.com/fluency/48/money.png" class="w-6 h-6">
+                            </div>
+                        </div>
+                        <div class="mt-4 flex items-center text-sm">
+                            <span class="text-green-500 flex items-center">
+                                <img src="https://img.icons8.com/fluency/48/up.png" class="w-4 h-4 mr-1">
+                                20%
+                            </span>
+                            <span class="text-gray-400 ml-2">vs mes anterior</span>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Recent Activity -->
@@ -421,45 +463,547 @@
                     </div>
                 </div>
             </div>
+
+            <div *ngIf="currentView === 'new-project'" class="space-y-6">
+                <!-- Header -->
+                <div class="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+                        <div class="flex items-center space-x-4">
+                            <button (click)="goBack()" class="p-2 hover:bg-gray-100 rounded-full">
+                                <img src="https://img.icons8.com/fluency/48/back.png" class="w-5 h-5">
+                            </button>
+                            <div>
+                                <h2 class="text-lg font-semibold text-gray-900">Nuevo Proyecto</h2>
+                                <p class="text-sm text-gray-500">Creación detallada de proyecto</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-2 sm:ml-auto">
+                            <button
+                                (click)="saveProject()"
+                                class="flex-1 sm:flex-none px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm flex items-center justify-center gap-2">
+                                <img src="https://img.icons8.com/fluency/48/save.png" class="w-4 h-4 brightness-0 invert">
+                                Guardar Proyecto
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            
+                <!-- Formulario Principal -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                    <!-- Información Básica del Proyecto -->
+                    <div class="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100">
+                        <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-4">Información del Proyecto</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="project-name" class="block text-sm font-medium text-gray-700 mb-1">Nombre del Proyecto</label>
+                                <input type="text" id="project-name" [(ngModel)]="newProject.name" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label for="project-type" class="block text-sm font-medium text-gray-700 mb-1">Tipo de Proyecto</label>
+                                <select id="project-type" [(ngModel)]="newProject.type" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="web">Desarrollo Web</option>
+                                    <option value="mobile">Aplicación Móvil</option>
+                                    <option value="ecommerce">E-Commerce</option>
+                                    <option value="redesign">Rediseño</option>
+                                    <option value="other">Otro</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="project-description" class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+                                <textarea id="project-description" [(ngModel)]="newProject.description" rows="4" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                            </div>
+                        </div>
+                    </div>
+            
+                    <!-- Información del Cliente -->
+                    <div class="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100">
+                        <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-4">Información del Cliente</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="client-name" class="block text-sm font-medium text-gray-700 mb-1">Nombre del Cliente</label>
+                                <input type="text" id="client-name" [(ngModel)]="newProject.clientName" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label for="client-company" class="block text-sm font-medium text-gray-700 mb-1">Empresa</label>
+                                <input type="text" id="client-company" [(ngModel)]="newProject.clientCompany" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="client-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                    <input type="email" id="client-email" [(ngModel)]="newProject.clientEmail" 
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label for="client-phone" class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+                                    <input type="tel" id="client-phone" [(ngModel)]="newProject.clientPhone" 
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="start-date" class="block text-sm font-medium text-gray-700 mb-1">Fecha de Inicio</label>
+                                    <input type="date" id="start-date" [(ngModel)]="newProject.startDate" 
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label for="end-date" class="block text-sm font-medium text-gray-700 mb-1">Fecha de Entrega</label>
+                                    <input type="date" id="end-date" [(ngModel)]="newProject.endDate" 
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sistema de Etiquetas/Tags -->
+<div class="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100">
+    <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-4">Etiquetas</h3>
+    <div class="space-y-3">
+        <div>
+            <div class="flex items-center space-x-2">
+                <label for="new-tag" class="text-sm font-medium text-gray-700">Agregar etiqueta</label>
+                <div class="relative flex-1 max-w-xs">
+                    <input type="text" id="new-tag" [(ngModel)]="newTagText" placeholder="Ej: Urgente, Cliente VIP..." 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button (click)="addTag()" [disabled]="!newTagText.trim()" 
+                        class="absolute right-1 top-1 p-1 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span class="text-lg">+</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="flex flex-wrap gap-2 mt-3">
+            <div *ngFor="let tag of newProject.tags; let i = index" 
+                class="flex items-center px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm">
+                <span>{{tag}}</span>
+                <button (click)="removeTag(i)" class="ml-2 text-blue-700 hover:text-blue-900">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            </div>
+            <div *ngIf="newProject.tags.length === 0" class="text-sm text-gray-500 italic">
+                No hay etiquetas definidas
+            </div>
+        </div>
+        
+        <div class="mt-2">
+            <p class="text-xs text-gray-500">Las etiquetas te ayudarán a clasificar y encontrar más fácilmente tus proyectos</p>
+        </div>
+    </div>
+</div>
+
+<!-- Gestión de Archivos Adjuntos -->
+<div class="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100">
+    <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-4">Archivos del Proyecto</h3>
+    <div class="space-y-4">
+        <div class="border-2 border-dashed border-gray-300 rounded-lg p-4">
+            <div class="text-center space-y-2">
+                <img src="https://img.icons8.com/fluency/48/upload.png" class="mx-auto w-8 h-8">
+                <p class="text-sm text-gray-500">Arrastra archivos aquí o</p>
+                <label for="file-upload" class="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg text-sm hover:bg-blue-100 cursor-pointer inline-block">
+                    Seleccionar archivos
+                </label>
+                <input id="file-upload" type="file" multiple (change)="handleFileUpload($event)" class="hidden">
+            </div>
+            <p class="text-xs text-gray-500 text-center mt-2">Máximo 10MB por archivo. Formatos: PDF, DOC, JPG, PNG</p>
+        </div>
+        
+        <div class="mt-4" *ngIf="newProject.files && newProject.files.length > 0">
+            <h4 class="text-sm font-medium text-gray-700 mb-2">Archivos adjuntos</h4>
+            <div class="space-y-2 max-h-64 overflow-y-auto">
+                <div *ngFor="let file of newProject.files; let i = index" 
+                    class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div class="flex items-center space-x-3">
+                        <div class="flex-shrink-0">
+                            <img *ngIf="file.type.includes('image')" src="https://img.icons8.com/fluency/48/image.png" class="w-6 h-6">
+                            <img *ngIf="file.type.includes('pdf')" src="https://img.icons8.com/fluency/48/pdf.png" class="w-6 h-6">
+                            <img *ngIf="!file.type.includes('image') && !file.type.includes('pdf')" src="https://img.icons8.com/fluency/48/file.png" class="w-6 h-6">
+                        </div>
+                        <div class="flex-1 truncate">
+                            <p class="text-sm font-medium text-gray-700 truncate">{{file.name}}</p>
+                            <p class="text-xs text-gray-500">{{formatFileSize(file.size)}}</p>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button *ngIf="file.type.includes('image')" (click)="previewFile(file)" 
+                            class="p-1 text-blue-600 hover:text-blue-800 rounded">
+                            <img src="https://img.icons8.com/fluency/48/visible.png" class="w-5 h-5">
+                        </button>
+                        <button (click)="removeFile(i)" class="p-1 text-red-600 hover:text-red-800 rounded">
+                            <img src="https://img.icons8.com/fluency/48/delete-sign.png" class="w-5 h-5">
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hitos del Proyecto (Milestones) -->
+<div class="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100">
+    <div class="flex justify-between items-center mb-4">
+        <h3 class="text-base sm:text-lg font-semibold text-gray-900">Hitos del Proyecto</h3>
+        <button (click)="addMilestone()" class="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-sm hover:bg-blue-100">
+            + Nuevo Hito
+        </button>
+    </div>
+    <div class="space-y-3">
+        <div *ngFor="let milestone of newProject.milestones; let i = index" class="p-3 border border-gray-200 rounded-lg">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">Nombre del hito</label>
+                        <input type="text" [(ngModel)]="milestone.name" placeholder="Ej: Entrega de diseños" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">Fecha de entrega</label>
+                        <input type="date" [(ngModel)]="milestone.date" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">Porcentaje de pago</label>
+                        <div class="relative">
+                            <input type="number" [(ngModel)]="milestone.paymentPercentage" min="0" max="100" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            <span class="absolute right-3 top-2 text-gray-500">%</span>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <button (click)="removeMilestone(i)" class="p-1 text-red-600 hover:text-red-800 rounded">
+                        <img src="https://img.icons8.com/fluency/48/delete-sign.png" class="w-5 h-5">
+                    </button>
+                </div>
+            </div>
+            <div class="mt-2">
+                <label class="block text-xs text-gray-500 mb-1">Descripción (opcional)</label>
+                <textarea [(ngModel)]="milestone.description" rows="2" placeholder="Detalles importantes de este hito..." 
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"></textarea>
+            </div>
+            <div class="mt-2 text-right">
+                <span class="text-sm font-medium">Monto: ${{(newProject.totalBudget * (milestone.paymentPercentage/100)).toLocaleString('es-MX')}}</span>
+            </div>
+        </div>
+
+        <div *ngIf="newProject.milestones.length === 0" class="text-center p-4 border border-dashed border-gray-300 rounded-lg">
+            <p class="text-sm text-gray-500">No hay hitos definidos. Agrega hitos para establecer entregas y pagos parciales.</p>
+        </div>
+
+        <div *ngIf="getTotalMilestonePercentage() !== 100 && newProject.milestones.length > 0" class="mt-2 text-sm" 
+            [ngClass]="getTotalMilestonePercentage() > 100 ? 'text-red-500' : 'text-yellow-500'">
+            {{getTotalMilestonePercentage() > 100 ? 'Los porcentajes de pago exceden el 100%' : 'Los porcentajes de pago suman ' + getTotalMilestonePercentage() + '% (faltan ' + (100-getTotalMilestonePercentage()) + '%)'}}
+        </div>
+    </div>
+</div>
+
+<!-- Recursos Externos -->
+<div class="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100">
+    <div class="flex justify-between items-center mb-4">
+        <h3 class="text-base sm:text-lg font-semibold text-gray-900">Recursos Externos</h3>
+        <button (click)="addResource()" class="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-sm hover:bg-blue-100">
+            + Nuevo Recurso
+        </button>
+    </div>
+    
+    <div class="space-y-3">
+        <div *ngFor="let resource of newProject.resources; let i = index" class="p-3 border border-gray-200 rounded-lg">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">Tipo de recurso</label>
+                        <select [(ngModel)]="resource.type" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            <option value="hosting">Hosting</option>
+                            <option value="domain">Dominio</option>
+                            <option value="repo">Repositorio</option>
+                            <option value="design">Diseño</option>
+                            <option value="tool">Herramienta</option>
+                            <option value="api">API / Servicio</option>
+                            <option value="other">Otro</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">Nombre</label>
+                        <input type="text" [(ngModel)]="resource.name" placeholder="Ej: GitHub, Figma, AWS..." 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">URL</label>
+                        <input type="url" [(ngModel)]="resource.url" placeholder="https://" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500">
+                    </div>
+                </div>
+                <div>
+                    <button (click)="removeResource(i)" class="p-1 text-red-600 hover:text-red-800 rounded">
+                        <img src="https://img.icons8.com/fluency/48/delete-sign.png" class="w-5 h-5">
+                    </button>
+                </div>
+            </div>
+            
+            <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Usuario/Acceso</label>
+                    <input type="text" [(ngModel)]="resource.username" placeholder="Usuario (opcional)" 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Contraseña/Token</label>
+                    <div class="relative">
+                        <input [type]="resource.showPassword ? 'text' : 'password'" [(ngModel)]="resource.password" placeholder="Contraseña (opcional)" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500">
+                        <button (click)="resource.showPassword = !resource.showPassword" class="absolute right-3 top-2 text-gray-500">
+                            <img *ngIf="!resource.showPassword" src="https://img.icons8.com/fluency/48/visible.png" class="w-5 h-5">
+                            <img *ngIf="resource.showPassword" src="https://img.icons8.com/fluency/48/hide.png" class="w-5 h-5">
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-2">
+                <label class="block text-xs text-gray-500 mb-1">Notas</label>
+                <textarea [(ngModel)]="resource.notes" rows="2" placeholder="Información adicional sobre este recurso..." 
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"></textarea>
+            </div>
+        </div>
+        
+        <div *ngIf="newProject.resources.length === 0" class="text-center p-4 border border-dashed border-gray-300 rounded-lg">
+            <p class="text-sm text-gray-500">No hay recursos externos definidos. Agrega hosting, dominios, herramientas o APIs utilizadas.</p>
+        </div>
+    </div>
+</div>
+            
+                    <!-- Presupuesto y Distribución -->
+                    <div class="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100">
+                        <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-4">Presupuesto y Distribución</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="total-budget" class="block text-sm font-medium text-gray-700 mb-1">Costo Total (MXN)</label>
+                                <input type="number" id="total-budget" [(ngModel)]="newProject.totalBudget" (input)="calculateShares()" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <div class="flex items-center justify-between mb-2">
+                                    <label class="text-sm font-medium text-gray-700">Distribución del Presupuesto</label>
+                                    <button (click)="addTeamMember()" class="text-blue-600 text-sm hover:text-blue-800">
+                                        + Agregar miembro
+                                    </button>
+                                </div>
+                                <div class="space-y-3">
+                                    <div *ngFor="let member of newProject.teamMembers; let i = index" class="p-3 bg-gray-50 rounded-lg">
+                                        <div class="flex items-start gap-3">
+                                            <div class="flex-1">
+                                                <input type="text" [(ngModel)]="member.name" placeholder="Nombre" 
+                                                    class="w-full mb-2 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                                <div class="flex gap-2">
+                                                    <select [(ngModel)]="member.role" 
+                                                        class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                                        <option value="frontend">Frontend</option>
+                                                        <option value="backend">Backend</option>
+                                                        <option value="design">Diseño</option>
+                                                        <option value="pm">Project Manager</option>
+                                                        <option value="qa">QA</option>
+                                                    </select>
+                                                    <div class="relative flex-1">
+                                                        <input type="number" [(ngModel)]="member.percentage" (input)="calculateShares()" 
+                                                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                                                            min="1" max="100">
+                                                        <span class="absolute right-3 top-2 text-gray-500">%</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <button (click)="removeTeamMember(i)" class="p-1 hover:bg-gray-200 rounded">
+                                                <img src="https://img.icons8.com/fluency/48/delete-sign.png" class="w-5 h-5">
+                                            </button>
+                                        </div>
+                                        <div class="mt-2 text-right">
+                                            <span class="text-sm font-medium">Monto: ${{(newProject.totalBudget * (member.percentage/100)).toLocaleString('es-MX')}}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div *ngIf="getTotalPercentage() !== 100 && newProject.teamMembers.length > 0" class="mt-2 text-sm" 
+                                    [ngClass]="getTotalPercentage() > 100 ? 'text-red-500' : 'text-yellow-500'">
+                                    {{getTotalPercentage() > 100 ? 'La distribución excede el 100%' : 'La distribución es de ' + getTotalPercentage() + '% (faltan ' + (100-getTotalPercentage()) + '%)'}}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            
+                    <!-- Diseño y Recursos -->
+                    <div class="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100">
+                        <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-4">Diseño y Recursos</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Paleta de Colores</label>
+                                <div class="flex flex-wrap gap-2">
+                                    <div *ngFor="let color of newProject.design.colors; let i = index" class="relative">
+                                        <!-- Use a direct reference to a local model variable to prevent shared binding -->
+                                        <input type="color" [ngModel]="color" (ngModelChange)="newProject.design.colors[i] = $event" 
+                                            class="w-10 h-10 border rounded cursor-pointer">
+                                        <button (click)="removeColor(i)" *ngIf="newProject.design.colors.length > 1" 
+                                            class="absolute -top-2 -right-2 bg-white rounded-full w-5 h-5 flex items-center justify-center border">
+                                            <img src="https://img.icons8.com/fluency/48/delete-sign.png" class="w-3 h-3">
+                                        </button>
+                                    </div>
+                                    <button (click)="addColor()" 
+                                        class="w-10 h-10 border border-dashed border-gray-300 rounded flex items-center justify-center hover:bg-gray-50">
+                                        <span class="text-gray-500">+</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="typography" class="block text-sm font-medium text-gray-700 mb-1">Tipografía</label>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <p class="text-xs text-gray-500 mb-1">Títulos</p>
+                                        <select [(ngModel)]="newProject.design.headingFont" 
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                            <option value="sans">Sans-serif</option>
+                                            <option value="serif">Serif</option>
+                                            <option value="mono">Monospace</option>
+                                            <option value="display">Display</option>
+                                            <option value="other">Otro</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-500 mb-1">Textos</p>
+                                        <select [(ngModel)]="newProject.design.bodyFont" 
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                            <option value="sans">Sans-serif</option>
+                                            <option value="serif">Serif</option>
+                                            <option value="mono">Monospace</option>
+                                            <option value="other">Otro</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Logo del Cliente</label>
+                                <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                                    <div *ngIf="!newProject.design.logo" class="space-y-2">
+                                        <img src="https://img.icons8.com/fluency/48/image.png" class="mx-auto w-8 h-8">
+                                        <p class="text-sm text-gray-500">Arrastra un archivo o</p>
+                                        <!-- Add the input for file and connect it to the handleLogoUpload function -->
+                                        <input
+                                            type="file"
+                                            #logoFileInput
+                                            accept="image/*"
+                                            style="display: none;"
+                                            (change)="handleLogoUpload($event)"
+                                        >
+                                        <button 
+                                            class="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg text-sm hover:bg-blue-100"
+                                            (click)="logoFileInput.click()">
+                                            Seleccionar archivo
+                                        </button>
+                                    </div>
+                                    <div *ngIf="newProject.design.logo" class="relative">
+                                        <!-- Use SafeUrl pipe for the logo source -->
+                                        <img [src]="newProject.design.logo" class="max-h-32 mx-auto">
+                                        <button (click)="newProject.design.logo = null" 
+                                            class="absolute top-1 right-1 bg-white rounded-full w-6 h-6 flex items-center justify-center shadow-sm">
+                                            <img src="https://img.icons8.com/fluency/48/delete-sign.png" class="w-4 h-4">
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                <!-- Tareas y Responsabilidades -->
+                <div class="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-base sm:text-lg font-semibold text-gray-900">Tareas y Responsabilidades</h3>
+                        <button (click)="addTask()" class="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-sm hover:bg-blue-100">
+                            + Nueva Tarea
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full min-w-full divide-y divide-gray-200">
+                            <thead>
+                                <tr>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tarea</th>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Responsable</th>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha Inicio</th>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha Fin</th>
+                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                                    <th class="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                <tr *ngFor="let task of newProject.tasks; let i = index" class="hover:bg-gray-50">
+                                    <td class="px-3 py-4 whitespace-nowrap">
+                                        <input type="text" [(ngModel)]="task.name" placeholder="Nombre de la tarea" 
+                                            class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                    </td>
+                                    <td class="px-3 py-4 whitespace-nowrap">
+                                        <select [(ngModel)]="task.assignedTo" 
+                                            class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                            <option value="">Seleccionar</option>
+                                            <option *ngFor="let member of newProject.teamMembers" [value]="member.name">
+                                                {{member.name}} ({{getRoleLabel(member.role)}})
+                                            </option>
+                                        </select>
+                                    </td>
+                                    <td class="px-3 py-4 whitespace-nowrap">
+                                        <input type="date" [(ngModel)]="task.startDate" 
+                                            class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                    </td>
+                                    <td class="px-3 py-4 whitespace-nowrap">
+                                        <input type="date" [(ngModel)]="task.endDate" 
+                                            class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                    </td>
+                                    <td class="px-3 py-4 whitespace-nowrap">
+                                        <select [(ngModel)]="task.status" 
+                                            class="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                            <option value="pending">Pendiente</option>
+                                            <option value="in-progress">En Progreso</option>
+                                            <option value="review">En Revisión</option>
+                                            <option value="completed">Completada</option>
+                                        </select>
+                                    </td>
+                                    <td class="px-3 py-4 whitespace-nowrap text-right">
+                                        <button (click)="removeTask(i)" class="text-red-500 hover:text-red-700">
+                                            <img src="https://img.icons8.com/fluency/48/delete-sign.png" class="w-5 h-5 inline">
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr *ngIf="newProject.tasks.length === 0">
+                                    <td colspan="6" class="px-3 py-4 text-center text-sm text-gray-500">
+                                        No hay tareas asignadas. Haz clic en "Nueva Tarea" para comenzar.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            
+                <!-- Notas y Comentarios Adicionales -->
+                <div class="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100">
+                    <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-4">Notas y Comentarios Adicionales</h3>
+                    <textarea [(ngModel)]="newProject.notes" rows="5" 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Escribe aquí cualquier información adicional, requisitos específicos, o notas importantes sobre el proyecto..."></textarea>
+                </div>
+            
+                <!-- Botón de Guardar (versión móvil) -->
+                <div class="sm:hidden">
+                    <button
+                        (click)="saveProject()"
+                        class="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm flex items-center justify-center gap-2">
+                        <img src="https://img.icons8.com/fluency/48/save.png" class="w-5 h-5 brightness-0 invert">
+                        Guardar Proyecto
+                    </button>
+                </div>
+            </div>
         </main>
     </div>
 </div>
 
-<!-- Modal de Confirmación -->
-<div *ngIf="showConfirmModal" 
-     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-    <div class="bg-white rounded-xl shadow-xl p-6 max-w-sm w-full">
-        <div class="flex items-center gap-3 mb-4">
-            <img 
-                [src]="confirmAction === 'approve' ? 
-                       'https://img.icons8.com/fluency/48/info-popup.png' : 
-                       'https://img.icons8.com/fluency/48/warning-shield.png'"
-                class="w-8 h-8">
-            <h3 class="text-lg font-semibold text-gray-900">
-                Confirmar {{ confirmAction === 'approve' ? 'Aprobación' : 'Rechazo' }}
-            </h3>
-        </div>
-        
-        <p class="text-gray-600 mb-6">
-            ¿Estás seguro de que deseas {{ confirmAction === 'approve' ? 'aprobar' : 'rechazar' }} 
-            la cotización de <span class="font-medium">{{selectedQuotation.personalInfo.company}}</span>?
-            Esta acción no se puede deshacer.
-        </p>
-
-        <div class="flex justify-end gap-3">
-            <button 
-                (click)="cancelConfirmation()"
-                class="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                Cancelar
-            </button>
-            <button 
-                (click)="confirmAction === 'approve' ? approveQuotation() : rejectQuotation()"
-                [ngClass]="confirmAction === 'approve' ? 
-                          'bg-blue-600 hover:bg-blue-700' : 
-                          'bg-red-600 hover:bg-red-700'"
-                class="px-4 py-2 text-white rounded-lg transition-colors">
-                {{ confirmAction === 'approve' ? 'Aprobar' : 'Rechazar' }}
-            </button>
-        </div>
-    </div>
-</div>
