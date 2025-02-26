@@ -20,12 +20,15 @@
     "@angular/platform-browser-dynamic": "^18.2.0",
     "@angular/router": "^18.2.0",
     "animate.css": "^4.1.1",
+    "chart.js": "^4.4.8",
     "emailjs-com": "^3.2.0",
     "firebase": "^11.3.1",
     "framer-motion": "^12.4.7",
+    "papaparse": "^5.5.2",
     "rxjs": "~7.8.0",
     "sweetalert2": "^11.17.2",
     "tslib": "^2.3.0",
+    "xlsx": "^0.18.5",
     "zone.js": "~0.14.10"
   },
   "devDependencies": {
@@ -33,6 +36,7 @@
     "@angular/cli": "^18.2.14",
     "@angular/compiler-cli": "^18.2.0",
     "@types/jasmine": "~5.1.0",
+    "@types/papaparse": "^5.3.15",
     "autoprefixer": "^10.4.20",
     "jasmine-core": "~5.2.0",
     "karma": "~6.4.0",

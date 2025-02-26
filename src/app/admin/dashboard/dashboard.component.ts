@@ -6,8 +6,23 @@ import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { AngularFireStorage } from '@angular/fire/compat/storage'; // Add this import
 import { Router } from '@angular/router';
+import { Chart, registerables } from 'chart.js';
+import { DocumentReference } from '@angular/fire/compat/firestore';
+import { of } from 'rxjs';
+declare module 'papaparse';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+
 
 type ProjectRole = 'frontend' | 'backend' | 'design' | 'pm' | 'qa';
+
+Chart.register(...registerables);
+
+declare global {
+  interface Window {
+    businessChart: any;
+    presenceChart: any;
+  }
+}
 
 interface TeamMember {
   name: string;
@@ -90,6 +105,8 @@ interface ProjectMilestone {
   styleUrls: ['./dashboard.component.css']
 })
 export class DashboardComponent implements OnInit {
+  selectedQuotation: any = null; 
+
   projects: any[] = [];
   newProject: Project = {
     name: '',
@@ -126,7 +143,7 @@ export class DashboardComponent implements OnInit {
   contacts: any[] = [];
   quotations: any[] = [];
   users: any[] = []; // Para obtener usuarios del sistema si es necesario
-  currentView: 'dashboard' | 'contacts' | 'quotations' | 'quotation-detail' | 'new-project' | 'projects' | 'project-detail' = 'dashboard';  selectedQuotation: any = null;
+  currentView: 'dashboard' | 'contacts' | 'quotations' | 'quotation-detail' | 'new-project' | 'projects' | 'project-detail' | 'potential-clients' = 'dashboard';
   isSidebarOpen = false;
   windowWidth: number = 0;
   searchText: string = '';
@@ -134,6 +151,7 @@ export class DashboardComponent implements OnInit {
   userEmail: string | null = null;
 // Actualizar constructor para inyectar AngularFireStorage
 constructor(
+  
   private firebaseService: FirebaseService,
   private router: Router,
   private auth: AngularFireAuth,
@@ -210,14 +228,12 @@ constructor(
     if (isPlatformBrowser(this.platformId)) {
       this.windowWidth = window.innerWidth;
     }
+
+    this.loadPotentialClientsFromFirestore();
   }
   
+  clientsData: any[] = [];
 
-  changeView(view: 'dashboard' | 'contacts' | 'quotations' | 'new-project' | 'projects') {
-    window.scrollTo(0, 0);
-    this.currentView = view;
-    this.isSidebarOpen = false;  // Cierra el menú
-  }
 
   toggleSidebar() {
     this.isSidebarOpen = !this.isSidebarOpen;
@@ -1825,5 +1841,710 @@ filterFiles(filter: 'all' | 'image' | 'document' | 'other') {
   this.currentFileFilter = filter;
 }
 
+
+// Propiedades adicionales para el componente
+searchClientText: string = '';
+currentClientFilter: 'all' | 'with-website' | 'no-website' | 'with-location' = 'all';
+selectedBusinessType: string = 'all';
+businessTypeChart: any[] = [];
+businessTypeColors: string[] = [];
+
+// Actualizar changeView para incluir la nueva vista
+changeView(view: 'dashboard' | 'contacts' | 'quotations' | 'quotation-detail' | 'new-project' | 'projects' | 'project-detail' | 'potential-clients') {
+  window.scrollTo(0, 0);
+  this.currentView = view;
+  this.isSidebarOpen = false;
+  
+  // Si se cambia a la vista de clientes potenciales, intentar renderizar las gráficas nuevamente
+  if (view === 'potential-clients' && this.clientsData && this.clientsData.length > 0) {
+    console.log('Cambiando a vista de clientes potenciales, intentando renderizar gráficas');
+    // Dar tiempo para que el DOM se actualice
+    setTimeout(() => {
+      this.generateCharts();
+    }, 500);
+  }
+}
+
+// Método para procesar el archivo Excel seleccionado
+async onExcelFileSelected(event: any) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  // Mostrar cargando
+  Swal.fire({
+    title: 'Procesando archivo',
+    html: 'Esto puede tomar un momento...',
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    }
+  });
+  
+  try {
+    // Leer el archivo
+    const reader = new FileReader();
+    
+    reader.onload = async (e: any) => {
+      const data = new Uint8Array(e.target.result);
+      let workbook;
+      let jsonData;
+      
+      if (file.name.endsWith('.csv')) {
+        // Procesar CSV
+        const text = new TextDecoder('utf-8').decode(data);
+        // Llamar a la función pero devolver los datos en lugar de asignarlos directamente
+        jsonData = await this.processCSVData(text, true);
+      } else {
+        // Procesar Excel
+        try {
+          // Se requiere importar xlsx (SheetJS)
+          const XLSX = await import('xlsx');
+          workbook = XLSX.read(data, { type: 'array' });
+          const sheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[sheetName];
+          jsonData = XLSX.utils.sheet_to_json(worksheet, { raw: false });
+          
+          // Normalizar los datos pero no asignarlos directamente al clientsData
+          jsonData = this.normalizeData(jsonData);
+        } catch (error) {
+          console.error('Error al procesar Excel:', error);
+          Swal.fire({
+            title: 'Error',
+            text: 'No se pudo procesar el archivo Excel. Asegúrate de que tenga el formato correcto.',
+            icon: 'error'
+          });
+          return;
+        }
+      }
+
+      // Si llegamos aquí, tenemos los datos normalizados en jsonData
+      if (jsonData && jsonData.length > 0) {
+        // Guardar en Firestore
+        try {
+          // Opción 1: Guardar como colección
+          const batch = this.firestore.firestore.batch();
+          const clientsCollectionRef = this.firestore.collection('potential_clients');
+          
+          // Eliminar datos existentes (opcional, depende si quieres reemplazar o añadir)
+          Swal.fire({
+            title: '¿Cómo quieres guardar estos datos?',
+            text: 'Puedes reemplazar todos los clientes existentes o añadir estos nuevos a la lista actual',
+            icon: 'question',
+            showDenyButton: true,
+            confirmButtonText: 'Reemplazar existentes',
+            denyButtonText: 'Añadir a existentes',
+            confirmButtonColor: '#3b82f6'
+          }).then(async (result) => {
+            if (result.isConfirmed) {
+              const existingClients = await clientsCollectionRef.get().toPromise();
+              const deletePromises = existingClients?.docs.map(doc => doc.ref.delete()) || [];              
+              await Promise.all(deletePromises);
+            }
+            
+            // Ahora guardar los nuevos datos
+            for (const client of jsonData) {
+              // Añadir fecha de carga
+              client.uploadedAt = new Date();
+              
+              // Crear documento nuevo
+              const newDocRef = clientsCollectionRef.doc().ref;
+              batch.set(newDocRef, client);              
+            }
+            
+            // Commit el batch
+            await batch.commit();
+            
+            // Cargar los datos en la interfaz
+            this.loadPotentialClientsFromFirestore();
+            
+            Swal.fire({
+              title: 'Datos guardados',
+              icon: 'success',
+              text: `Se guardaron ${jsonData.length} registros de clientes potenciales.`,
+              confirmButtonColor: '#3b82f6'
+            });
+          });
+        } catch (error) {
+          console.error('Error al guardar en Firestore:', error);
+          Swal.fire({
+            title: 'Error',
+            text: 'No se pudieron guardar los datos en la base de datos.',
+            icon: 'error'
+          });
+        }
+      }
+    };
+    
+    reader.onerror = () => {
+      Swal.fire({
+        title: 'Error',
+        text: 'No se pudo leer el archivo.',
+        icon: 'error'
+      });
+    };
+    
+    reader.readAsArrayBuffer(file);
+  } catch (error) {
+    console.error('Error al leer el archivo:', error);
+    Swal.fire({
+      title: 'Error',
+      text: 'Ocurrió un error al procesar el archivo.',
+      icon: 'error'
+    });
+  }
+  
+  // Limpiar el input file para permitir cargar el mismo archivo nuevamente
+  event.target.value = '';
+}
+
+
+loadPotentialClientsFromFirestore() {
+  this.firestore.collection('potential_clients')
+    .snapshotChanges()
+    .subscribe(actions => {
+      this.clientsData = actions.map(a => {
+        const data = a.payload.doc.data() as any;
+        const id = a.payload.doc.id;
+        return { id, ...data };
+      });
+      
+      // Generar gráficos con los datos cargados
+      if (this.clientsData.length > 0) {
+        this.generateCharts();
+      }
+    });
+}
+presenceData: any[] = [];
+
+// Procesar datos CSV
+processCSVData(text: string, returnData = false): Promise<any[]> {
+  return new Promise((resolve, reject) => {
+    try {
+      // Se requiere importar Papa Parse
+      import('papaparse').then(Papa => {
+        Papa.parse(text, {
+          header: true,
+          skipEmptyLines: true,
+          complete: (results) => {
+            const normalizedData = this.normalizeData(results.data);
+            
+            if (!returnData) {
+              // Comportamiento original
+              this.clientsData = normalizedData;
+              this.generateCharts();
+              
+              Swal.fire({
+                title: 'Archivo procesado',
+                icon: 'success',
+                text: `Se cargaron ${this.clientsData.length} registros de clientes potenciales.`,
+                confirmButtonColor: '#3b82f6'
+              });
+            }
+            
+            resolve(normalizedData);
+          },
+          error: (error: Error) => {
+            console.error('Error al procesar CSV:', error);
+            reject(error);
+          }
+        });
+      });
+    } catch (error) {
+      console.error('Error al procesar CSV:', error);
+      reject(error);
+    }
+  });
+}
+// Normalizar datos del Excel
+normalizeData(data: any[]): any[] {
+  return data.map(item => {
+    // Buscar las columnas que podrían contener los datos que necesitamos
+    const nameKeys = Object.keys(item).filter(k => 
+      k.toLowerCase().includes('name') || 
+      k.toLowerCase().includes('nombre') || 
+      k.toLowerCase().includes('business') ||
+      k.toLowerCase().includes('empresa')
+    );
+    
+    const websiteKeys = Object.keys(item).filter(k => 
+      k.toLowerCase().includes('web') || 
+      k.toLowerCase().includes('site') || 
+      k.toLowerCase().includes('sitio')
+    );
+    
+    const locationKeys = Object.keys(item).filter(k => 
+      k.toLowerCase().includes('location') || 
+      k.toLowerCase().includes('ubicacion') || 
+      k.toLowerCase().includes('ubicación') ||
+      k.toLowerCase().includes('place') ||
+      k.toLowerCase().includes('map')
+    );
+    
+    const typeKeys = Object.keys(item).filter(k => 
+      k.toLowerCase().includes('type') || 
+      k.toLowerCase().includes('tipo') || 
+      k.toLowerCase().includes('giro') ||
+      k.toLowerCase().includes('industry') ||
+      k.toLowerCase().includes('industria') ||
+      k.toLowerCase().includes('category') ||
+      k.toLowerCase().includes('categoría')
+    );
+    
+    // Obtener los valores usando las claves encontradas o predeterminadas
+    const name = nameKeys.length > 0 ? item[nameKeys[0]] : (item['name'] || item['Name'] || '');
+    const website = websiteKeys.length > 0 ? item[websiteKeys[0]] : (item['website'] || item['Website'] || '');
+    const place_link = locationKeys.length > 0 ? item[locationKeys[0]] : (item['place_link'] || item['location'] || '');
+    const types = typeKeys.length > 0 ? item[typeKeys[0]] : (item['types'] || item['type'] || 'No especificado');
+    
+    return {
+      name: name || 'Sin nombre',
+      website: website || '',
+      place_link: place_link || '',
+      types: types || 'No especificado'
+    };
+  });
+}
+
+// Generar gráficos
+generateCharts() {
+  this.generateBusinessTypeChart();
+  this.generatePresenceChart();
+}
+
+// Generar gráfico de tipos de negocio
+generateBusinessTypeChart() {
+  const businessTypes = this.getUniqueBusinessTypes();
+  const counts: { [key: string]: number } = {};
+  
+  // Contar ocurrencias de cada tipo
+  this.clientsData.forEach(client => {
+    const type = client.types || 'No especificado';
+    counts[type] = (counts[type] || 0) + 1;
+  });
+  
+  // Preparar datos para el gráfico
+  this.businessTypeChart = businessTypes.map(type => {
+    return {
+      name: type,
+      value: counts[type] || 0
+    };
+  });
+  
+  // Ordenar por cantidad descendente y limitar a los 10 más comunes
+  this.businessTypeChart.sort((a, b) => b.value - a.value);
+  if (this.businessTypeChart.length > 10) {
+    const others = {
+      name: 'Otros',
+      value: this.businessTypeChart.slice(9).reduce((sum, item) => sum + item.value, 0)
+    };
+    this.businessTypeChart = this.businessTypeChart.slice(0, 9);
+    this.businessTypeChart.push(others);
+  }
+  
+  // Generar colores aleatorios para los gráficos
+  this.businessTypeColors = this.businessTypeChart.map((item) => this.getRandomColor(item.name));
+  
+  // Renderizar gráfico usando Chart.js
+  setTimeout(() => {
+    this.renderBusinessTypeChart();
+    this.renderPresenceChart();
+  }, 100);
+}
+
+renderBusinessTypeChart() {
+  const ctx = document.getElementById('businessTypeChart') as HTMLCanvasElement;
+  if (!ctx) {
+    console.error('No se encontró el elemento businessTypeChart en el DOM');
+    return;
+  }
+  
+  console.log('Renderizando gráfica de tipos de negocio');
+  
+  // Si estás usando Chart.js
+  import('chart.js').then(Chart => {
+    // Destruir gráfico existente si hay uno
+    if (window.businessChart instanceof Chart.Chart) {
+      window.businessChart.destroy();
+    }
+    
+    window.businessChart = new Chart.Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: this.businessTypeChart.map(item => item.name),
+        datasets: [{
+          data: this.businessTypeChart.map(item => item.value),
+          backgroundColor: this.businessTypeColors,
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'right',
+            labels: {
+              boxWidth: 12
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: (context) => {
+                const label = context.label || '';
+                const value = context.raw || 0;
+                const percentage = ((value as number) / this.clientsData.length * 100).toFixed(1);
+                return `${label}: ${value} (${percentage}%)`;
+              }
+            }
+          }
+        }
+      }
+    });
+  }).catch(error => {
+    console.error('Error al cargar Chart.js:', error);
+  });
+}
+
+// Renderizar gráfico de tipos de negocio con Chart.js
+renderPresenceChart() {
+  const ctx = document.getElementById('presenceChart') as HTMLCanvasElement;
+  if (!ctx) {
+    console.error('No se encontró el elemento presenceChart en el DOM');
+    return;
+  }
+  
+  console.log('Renderizando gráfica de presencia digital');
+  
+  // Si estás usando Chart.js
+  import('chart.js').then(Chart => {
+    // Destruir gráfico existente si hay uno
+    if (window.presenceChart instanceof Chart.Chart) {
+      window.presenceChart.destroy();
+    }
+    
+    window.presenceChart = new Chart.Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: this.presenceData.map(item => item.name),
+        datasets: [{
+          label: 'Clientes',
+          data: this.presenceData.map(item => item.value),
+          backgroundColor: ['#3b82f6', '#10b981', '#6366f1', '#ef4444'],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            callbacks: {
+              label: (context) => {
+                const label = context.label || '';
+                const value = context.raw || 0;
+                const percentage = ((value as number) / this.clientsData.length * 100).toFixed(1);
+                return `${label}: ${value} (${percentage}%)`;
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'Número de clientes'
+            }
+          }
+        }
+      }
+    });
+  }).catch(error => {
+    console.error('Error al cargar Chart.js:', error);
+  });
+}
+
+// Generar gráfico de presencia digital
+generatePresenceChart() {
+  const withWebsite = this.getClientsWithWebsite();
+  const withLocation = this.getClientsWithLocation();
+  const withBoth = this.clientsData.filter(c => 
+    (c.website && c.website.trim()) && 
+    (c.place_link && c.place_link.trim())
+  ).length;
+  const withNone = this.clientsData.filter(c => 
+    (!c.website || !c.website.trim()) && 
+    (!c.place_link || !c.place_link.trim())
+  ).length;
+  
+  this.presenceData = [
+    { name: 'Solo Web', value: withWebsite - withBoth },
+    { name: 'Solo Ubicación', value: withLocation - withBoth },
+    { name: 'Ambos', value: withBoth },
+    { name: 'Ninguno', value: withNone }
+  ];
+}
+
+// Métodos para métricas
+getClientsWithWebsite(): number {
+  return this.clientsData.filter(client => client.website && client.website.trim()).length;
+}
+
+getClientsWithLocation(): number {
+  return this.clientsData.filter(client => client.place_link && client.place_link.trim()).length;
+}
+
+getUniqueBusinessTypes(): string[] {
+  const types = new Set<string>();
+  this.clientsData.forEach(client => {
+    types.add(client.types || 'No especificado');
+  });
+  return Array.from(types);
+}
+
+getPercentage(part: number, total: number): string {
+  if (total === 0) return '0';
+  return ((part / total) * 100).toFixed(1);
+}
+
+// Método para filtrar clientes
+filteredClients(): any[] {
+  let result = [...this.clientsData];
+  
+  // Filtrar por texto de búsqueda
+  if (this.searchClientText) {
+    const searchText = this.searchClientText.toLowerCase();
+    result = result.filter(client => 
+      client.name.toLowerCase().includes(searchText) || 
+      (client.types && client.types.toLowerCase().includes(searchText))
+    );
+  }
+  
+  // Filtrar por presencia web/ubicación
+  if (this.currentClientFilter === 'with-website') {
+    result = result.filter(client => client.website && client.website.trim());
+  } else if (this.currentClientFilter === 'no-website') {
+    result = result.filter(client => !client.website || !client.website.trim());
+  } else if (this.currentClientFilter === 'with-location') {
+    result = result.filter(client => client.place_link && client.place_link.trim());
+  }
+  
+  // Filtrar por tipo de negocio
+  if (this.selectedBusinessType !== 'all') {
+    result = result.filter(client => client.types === this.selectedBusinessType);
+  }
+  
+  return result;
+}
+
+// Cambiar filtro
+filterClients(filter: 'all' | 'with-website' | 'no-website' | 'with-location') {
+  this.currentClientFilter = filter;
+}
+
+// Aplicar filtro de tipo de negocio
+applyBusinessTypeFilter() {
+  // No es necesario hacer nada aquí, ya que el filtro se aplica en filteredClients()
+}
+
+// Obtener clase CSS para el tipo de negocio
+getBusinessTypeClass(type: string): string {
+  // Generar un color consistente basado en el tipo de negocio
+  const hash = this.hashString(type);
+  const colorIndex = Math.abs(hash) % 5;
+  
+  const colorClasses = [
+    'bg-blue-100 text-blue-800',
+    'bg-green-100 text-green-800',
+    'bg-purple-100 text-purple-800',
+    'bg-yellow-100 text-yellow-800',
+    'bg-red-100 text-red-800'
+  ];
+  
+  return colorClasses[colorIndex];
+}
+
+// Función para generar un hash a partir de un string
+hashString(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash) + str.charCodeAt(i);
+    hash |= 0; // Convertir a entero de 32 bits
+  }
+  return hash;
+}
+
+// Formatear URL de sitio web
+formatWebsiteUrl(url: string): string {
+  if (!url) return '';
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+  return `https://${url}`;
+}
+
+
+// Exportar a Excel
+exportToExcel() {
+  // Se requiere importar xlsx (SheetJS)
+  import('xlsx').then(XLSX => {
+    try {
+      const data = this.filteredClients();
+      const worksheet = XLSX.utils.json_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Clientes Potenciales');
+      XLSX.writeFile(workbook, 'clientes_potenciales.xlsx');
+    } catch (error) {
+      console.error('Error al exportar a Excel:', error);
+      Swal.fire({
+        title: 'Error',
+        text: 'No se pudo exportar a Excel.',
+        icon: 'error'
+      });
+    }
+  });
+}
+
+// Limpiar datos
+clearData() {
+  Swal.fire({
+    title: '¿Limpiar datos?',
+    text: 'Se eliminarán todos los datos de clientes potenciales. Esta acción no se puede deshacer.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, limpiar',
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#ef4444'
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      try {
+        // Eliminar de Firestore
+        const clientsRef = this.firestore.collection('potential_clients');
+        const snapshot = await clientsRef.get().toPromise();
+        
+        const batch = this.firestore.firestore.batch();
+        if (snapshot && snapshot.docs) {
+          snapshot.docs.forEach(doc => {
+            batch.delete(doc.ref);
+          });
+        }
+        
+        await batch.commit();
+        
+        // Limpiar datos locales
+        this.clientsData = [];
+        this.businessTypeChart = [];
+        this.selectedBusinessType = 'all';
+        this.currentClientFilter = 'all';
+        this.searchClientText = '';
+        
+        Swal.fire({
+          title: 'Datos eliminados',
+          icon: 'success',
+          timer: 1500,
+          showConfirmButton: false
+        });
+      } catch (error) {
+        console.error('Error al eliminar datos:', error);
+        Swal.fire({
+          title: 'Error',
+          text: 'No se pudieron eliminar los datos.',
+          icon: 'error'
+        });
+      }
+    }
+  });
+}
+
+// Convertir a contacto
+convertToContact(client: any) {
+  Swal.fire({
+    title: 'Convertir a Contacto',
+    html: `
+      <form id="contact-form" class="space-y-4 text-left">
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Nombre</label>
+          <input type="text" id="name" value="${client.name}" class="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Email</label>
+          <input type="email" id="email" class="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Teléfono</label>
+          <input type="tel" id="phone" class="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Mensaje</label>
+          <textarea id="message" rows="3" class="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+        </div>
+      </form>
+    `,
+    showCancelButton: true,
+    confirmButtonText: 'Guardar Contacto',
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#3b82f6',
+    preConfirm: () => {
+      const name = (document.getElementById('name') as HTMLInputElement).value;
+      const email = (document.getElementById('email') as HTMLInputElement).value;
+      const phone = (document.getElementById('phone') as HTMLInputElement).value;
+      const message = (document.getElementById('message') as HTMLTextAreaElement).value;
+      
+      if (!name || !email) {
+        Swal.showValidationMessage('El nombre y email son obligatorios');
+        return false;
+      }
+      
+      return { name, email, phone, message };
+    }
+  }).then((result) => {
+    if (result.isConfirmed && result.value) {
+      // Crear contacto en Firestore
+      const contactData = {
+        name: result.value.name,
+        email: result.value.email,
+        phone: result.value.phone || '',
+        message: result.value.message || '',
+        source: 'Convertido de cliente potencial',
+        website: client.website || '',
+        business_type: client.types || '',
+        location: client.place_link || '',
+        status: 'nuevo',
+        createdAt: new Date()
+      };
+      
+      this.firestore.collection('contacts').add(contactData)
+        .then(() => {
+          Swal.fire({
+            title: 'Contacto guardado',
+            text: 'El cliente potencial ha sido convertido a contacto exitosamente.',
+            icon: 'success'
+          });
+        })
+        .catch(error => {
+          console.error('Error al guardar contacto:', error);
+          Swal.fire({
+            title: 'Error',
+            text: 'No se pudo guardar el contacto.',
+            icon: 'error'
+          });
+        });
+    }
+  });
+}
+
+// Crear cotización
+createQuotation(client: any) {
+  this.router.navigate(['/create-quotation'], { 
+    queryParams: { 
+      name: client.name,
+      company: client.name, // O puedes usar un campo company si existe
+      business_type: client.types
+    } 
+  });
+}
 
 }

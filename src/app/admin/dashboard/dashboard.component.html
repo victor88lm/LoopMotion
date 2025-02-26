@@ -59,6 +59,15 @@
                         {{activeProjects.length}}
                     </span>
                 </button>
+                <button (click)="changeView('potential-clients')"
+                    class="w-full flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-blue-50 transition-colors"
+                    [ngClass]="{'bg-blue-50 text-blue-600': currentView === 'potential-clients'}">
+                    <img src="https://img.icons8.com/fluency/48/business.png" class="w-5 h-5 mr-3">
+                    <span class="font-medium">Posibles Clientes</span>
+                    <span *ngIf="clientsData?.length" class="ml-auto bg-blue-100 text-blue-600 px-2 py-1 rounded-full text-xs">
+                        {{clientsData.length}}
+                    </span>
+                </button>
                 <button (click)="changeView('contacts')"
                     class="w-full flex items-center px-4 py-3 text-gray-600 rounded-lg hover:bg-blue-50 transition-colors"
                     [ngClass]="{'bg-blue-50 text-blue-600': currentView === 'contacts'}">
@@ -2151,7 +2160,277 @@
         </div>
     </div>
 </div>
+<!-- Vista de Clientes Potenciales -->
+<div *ngIf="currentView === 'potential-clients'" class="space-y-6">
+    <!-- Header -->
+    <div class="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100">
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <h1 class="text-lg sm:text-xl font-semibold text-gray-800">Clientes Potenciales</h1>
+            <div class="w-full sm:w-auto flex gap-2">
+                <div class="relative flex-1 sm:w-64">
+                    <input type="text" [(ngModel)]="searchClientText" placeholder="Buscar cliente..." 
+                        class="w-full px-3 py-2 pl-9 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <img src="https://img.icons8.com/fluency/48/search.png" class="w-5 h-5 absolute left-2 top-2.5 opacity-60">
+                </div>
+                <label for="excel-upload" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm flex items-center justify-center gap-2 cursor-pointer">
+                    <img src="https://img.icons8.com/fluency/48/upload.png" class="w-4 h-4 brightness-0 invert">
+                    Cargar Excel
+                </label>
+                <input id="excel-upload" type="file" accept=".xlsx, .xls, .csv" (change)="onExcelFileSelected($event)" class="hidden">
+            </div>
+        </div>
+    </div>
 
+    <!-- Estado sin datos -->
+    <div *ngIf="!clientsData || clientsData.length === 0" class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 text-center py-12">
+        <img src="https://img.icons8.com/fluency/48/business.png" class="w-16 h-16 mx-auto mb-4 opacity-70">
+        <h3 class="text-lg font-medium text-gray-900 mb-2">No hay clientes potenciales</h3>
+        <p class="text-gray-500 max-w-md mx-auto mb-6">
+            Carga un archivo Excel con datos de clientes potenciales para visualizar y analizar la información.
+        </p>
+        <label for="excel-upload-empty" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm inline-flex items-center gap-2 cursor-pointer">
+            <img src="https://img.icons8.com/fluency/48/upload.png" class="w-4 h-4 brightness-0 invert">
+            Cargar archivo Excel
+        </label>
+        <input id="excel-upload-empty" type="file" accept=".xlsx, .xls, .csv" (change)="onExcelFileSelected($event)" class="hidden">
+        <p class="text-xs text-gray-500 mt-4">
+            El archivo debe contener columnas para: nombre, sitio web, enlace de ubicación y tipo de negocio.
+        </p>
+    </div>
+
+    <!-- Datos cargados -->
+    <div *ngIf="clientsData && clientsData.length > 0" class="space-y-6">
+        <!-- Dashboard de métricas -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">Total Clientes</p>
+                        <p class="text-2xl font-bold text-gray-900 mt-1">{{clientsData.length}}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                        <img src="https://img.icons8.com/fluency/48/business.png" class="w-6 h-6">
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">Con Sitio Web</p>
+                        <p class="text-2xl font-bold text-gray-900 mt-1">{{getClientsWithWebsite()}}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                        <img src="https://img.icons8.com/fluency/48/domain.png" class="w-6 h-6">
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center text-sm">
+                    <span class="text-green-500">{{getPercentage(getClientsWithWebsite(), clientsData.length)}}%</span>
+                    <span class="text-gray-400 ml-2">del total</span>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">Con Ubicación</p>
+                        <p class="text-2xl font-bold text-gray-900 mt-1">{{getClientsWithLocation()}}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
+                        <img src="https://img.icons8.com/fluency/48/map-pin.png" class="w-6 h-6">
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center text-sm">
+                    <span class="text-yellow-500">{{getPercentage(getClientsWithLocation(), clientsData.length)}}%</span>
+                    <span class="text-gray-400 ml-2">del total</span>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">Giros de Negocio</p>
+                        <p class="text-2xl font-bold text-gray-900 mt-1">{{getUniqueBusinessTypes().length}}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                        <img src="https://img.icons8.com/fluency/48/diversity.png" class="w-6 h-6">
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center text-sm">
+                    <span class="text-purple-500 flex items-center">
+                        <img src="https://img.icons8.com/fluency/48/categorize.png" class="w-4 h-4 mr-1">
+                        Categorías únicas
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráficos -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Gráfico de distribución por tipo de negocio -->
+            <div class="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100">
+                <h3 class="text-base font-semibold text-gray-900 mb-4">Distribución por Giro de Negocio</h3>
+                <div class="h-64 w-full">
+                    <!-- Aquí va el gráfico, si usas una librería como Chart.js o ngx-charts -->
+                    <div *ngIf="businessTypeChart && businessTypeChart.length > 0; else noChartData" class="w-full h-full">
+                        <canvas id="businessTypeChart"></canvas>
+                    </div>
+                    <ng-template #noChartData>
+                        <div class="w-full h-full flex items-center justify-center text-gray-500">
+                            No hay suficientes datos para mostrar el gráfico
+                        </div>
+                    </ng-template>
+                </div>
+            </div>
+
+            <!-- Gráfico de presencia web y ubicación -->
+            <div class="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100">
+                <h3 class="text-base font-semibold text-gray-900 mb-4">Presencia Digital</h3>
+                <div class="h-64 w-full">
+                    <!-- Aquí va el gráfico, si usas una librería como Chart.js o ngx-charts -->
+                    <div class="w-full h-full">
+                        <canvas id="presenceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
+            <div class="flex flex-wrap items-center gap-3">
+                <div class="text-sm font-medium text-gray-700">Filtrar por:</div>
+                
+                <div class="flex-1 flex flex-wrap gap-2">
+                    <button (click)="filterClients('all')" 
+                        class="px-3 py-1 text-sm rounded-full border" 
+                        [ngClass]="currentClientFilter === 'all' ? 'bg-blue-50 text-blue-600 border-blue-200' : 'border-gray-200 text-gray-600 hover:bg-gray-50'">
+                        Todos
+                    </button>
+                    <button (click)="filterClients('with-website')" 
+                        class="px-3 py-1 text-sm rounded-full border" 
+                        [ngClass]="currentClientFilter === 'with-website' ? 'bg-green-50 text-green-600 border-green-200' : 'border-gray-200 text-gray-600 hover:bg-gray-50'">
+                        Con Sitio Web
+                    </button>
+                    <button (click)="filterClients('no-website')" 
+                        class="px-3 py-1 text-sm rounded-full border" 
+                        [ngClass]="currentClientFilter === 'no-website' ? 'bg-red-50 text-red-600 border-red-200' : 'border-gray-200 text-gray-600 hover:bg-gray-50'">
+                        Sin Sitio Web
+                    </button>
+                    <button (click)="filterClients('with-location')" 
+                        class="px-3 py-1 text-sm rounded-full border" 
+                        [ngClass]="currentClientFilter === 'with-location' ? 'bg-yellow-50 text-yellow-600 border-yellow-200' : 'border-gray-200 text-gray-600 hover:bg-gray-50'">
+                        Con Ubicación
+                    </button>
+                </div>
+                
+                <div class="flex items-center gap-2">
+                    <label for="business-type-filter" class="text-sm text-gray-600">Giro:</label>
+                    <select id="business-type-filter" [(ngModel)]="selectedBusinessType" (change)="applyBusinessTypeFilter()" 
+                        class="px-3 py-1 text-sm border border-gray-200 rounded-lg focus:outline-none">
+                        <option value="all">Todos los giros</option>
+                        <option *ngFor="let type of getUniqueBusinessTypes()" [value]="type">{{type}}</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de clientes -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Nombre
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Giro de Negocio
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Sitio Web
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Ubicación
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Acciones
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <tr *ngFor="let client of filteredClients()" class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">{{client.name}}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full"
+                                    [ngClass]="getBusinessTypeClass(client.types)">
+                                    {{client.types}}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900 flex items-center">
+                                    <span *ngIf="client.website && client.website.trim()" class="inline-flex items-center">
+                                        <span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                                        <a [href]="formatWebsiteUrl(client.website)" target="_blank" class="text-blue-600 hover:underline">
+                                            {{client.website}}
+                                        </a>
+                                    </span>
+                                    <span *ngIf="!client.website || !client.website.trim()" class="inline-flex items-center">
+                                        <span class="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
+                                        <span>No disponible</span>
+                                    </span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">
+                                    <a *ngIf="client.place_link && client.place_link.trim()" 
+                                       [href]="client.place_link" 
+                                       target="_blank" 
+                                       class="text-blue-600 hover:underline flex items-center">
+                                        <img src="https://img.icons8.com/fluency/48/map-pin.png" class="w-4 h-4 mr-1">
+                                        Ver ubicación
+                                    </a>
+                                    <span *ngIf="!client.place_link || !client.place_link.trim()" class="text-gray-500">
+                                        No disponible
+                                    </span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <button (click)="convertToContact(client)" class="text-blue-600 hover:text-blue-900 mr-3">
+                                    Convertir a Contacto
+                                </button>
+                                <button (click)="createQuotation(client)" class="text-green-600 hover:text-green-900">
+                                    Crear Cotización
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Estado vacío para búsqueda sin resultados -->
+            <div *ngIf="filteredClients().length === 0" class="text-center py-10">
+                <img src="https://img.icons8.com/fluency/48/search-in-list.png" class="w-12 h-12 mx-auto mb-4 opacity-70">
+                <h3 class="text-lg font-medium text-gray-900 mb-2">No se encontraron clientes</h3>
+                <p class="text-gray-500 max-w-md mx-auto">
+                    No hay clientes que coincidan con tu búsqueda o filtros actuales. Intenta con otros términos.
+                </p>
+            </div>
+        </div>
+        
+        <!-- Exportar y Acciones -->
+        <div class="flex justify-end space-x-4">
+            <button (click)="exportToExcel()" 
+                class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors text-sm flex items-center gap-2">
+                <img src="https://img.icons8.com/fluency/48/microsoft-excel-2019.png" class="w-5 h-5">
+                Exportar a Excel
+            </button>
+            <button (click)="clearData()" 
+                class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors text-sm flex items-center gap-2">
+                <img src="https://img.icons8.com/fluency/48/delete-sign.png" class="w-5 h-5">
+                Limpiar Datos
+            </button>
+        </div>
+    </div>
+</div>
                                         </main>
     </div>
 </div>
