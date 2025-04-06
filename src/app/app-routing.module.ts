@@ -11,8 +11,10 @@ import { TermsAndConditionsComponent } from './components/terms-and-conditions/t
 import { PortfolioComponent } from './components/portfolio/portfolio.component';
 import { LoginComponent } from './admin/login/login.component';
 import { DashboardComponent } from './admin/dashboard/dashboard.component';
-import { AuthGuard } from './core/guards/auth.guard';
+import { AuthGuard } from './Core/guards/auth.guard';
 import { FaqComponent } from './components/faq/faq.component';
+import { FundadoresComponent } from './components/fundadores/fundadores.component';
+import { DesarrollowebComponent } from './components/desarrolloweb/desarrolloweb.component';
 
 const routes: Routes = [
   {
@@ -34,7 +36,9 @@ const routes: Routes = [
   { path: 'terms', component: TermsAndConditionsComponent },
   { path: 'portfolio', component: PortfolioComponent },
   { path: 'loop-admin', component: LoginComponent },
-  {path: 'faq', component: FaqComponent},
+  { path: 'faq', component: FaqComponent},
+  { path: 'Fundadores', component: FundadoresComponent},
+  { path: 'DesarrolloWeb', component: DesarrollowebComponent},
   // Ruta wildcard para manejar rutas no encontradas
   { path: '**', redirectTo: '' }
 ];

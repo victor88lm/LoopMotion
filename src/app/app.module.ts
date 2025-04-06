@@ -27,8 +27,10 @@ import { AngularFireAuthModule } from '@angular/fire/compat/auth';
 import { AngularFirestoreModule } from '@angular/fire/compat/firestore';
 import { AngularFireStorageModule } from '@angular/fire/compat/storage';
 import { environment } from '../environments/environment';
-import { AuthGuard } from './core/guards/auth.guard';
+import { AuthGuard } from './Core/guards/auth.guard';
 import { FaqComponent } from './components/faq/faq.component';
+import { FundadoresComponent } from './components/fundadores/fundadores.component';
+import { DesarrollowebComponent } from './components/desarrolloweb/desarrolloweb.component';
 
 @NgModule({
   declarations: [
@@ -47,7 +49,9 @@ import { FaqComponent } from './components/faq/faq.component';
     PortfolioComponent,
     LoginComponent,
     DashboardComponent,
-    FaqComponent
+    FaqComponent,
+    FundadoresComponent,
+    DesarrollowebComponent
   ],
   imports: [
     BrowserModule,
