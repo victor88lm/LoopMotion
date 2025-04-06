@@ -1,145 +1,238 @@
-// portfolio.component.ts
 import { Component, OnInit } from '@angular/core';
-import { trigger, state, style, animate, transition } from '@angular/animations';
 
-interface Technology {
-  name: string;
-  icon: string; // Path to the icon or icon class
-}
-
+// Interfaz para el modelo de proyecto
 interface Project {
-  id: string;
+  id: number;
   title: string;
   description: string;
-  shortDescription: string;
   imageUrl: string;
-  category: 'web' | 'mobile' | 'design' | 'ecommerce';
-  technologies: Technology[];
-  demoUrl?: string;
-  githubUrl?: string;
-  liveUrl?: string;
-  featured: boolean;
-  completionDate: Date;
-  clientName?: string;
-  testimonial?: {
-    text: string;
-    author: string;
-    position: string;
-  };
+  technologies: string[];
+  demoUrl: string;
+  detailsUrl: string;
+  category: string;
+  featured?: boolean;
+  date?: string;
+}
+
+// Interfaz para categorías
+interface Category {
+  value: string;
+  label: string;
+  icon: string;
 }
 
 @Component({
   selector: 'app-portfolio',
   templateUrl: './portfolio.component.html',
-  styleUrls: ['./portfolio.component.scss'],
-  animations: [
-    trigger('fadeInUp', [
-      state('void', style({
-        opacity: 0,
-        transform: 'translateY(20px)'
-      })),
-      transition('void => *', [
-        animate('0.6s ease-out', style({
-          opacity: 1,
-          transform: 'translateY(0)'
-        }))
-      ])
-    ]),
-    trigger('scaleIn', [
-      state('void', style({
-        opacity: 0,
-        transform: 'scale(0.9)'
-      })),
-      transition('void => *', [
-        animate('0.5s ease-out', style({
-          opacity: 1,
-          transform: 'scale(1)'
-        }))
-      ])
-    ])
-  ]
+  styleUrls: ['./portfolio.component.scss']
 })
 export class PortfolioComponent implements OnInit {
-  selectedCategory: string = 'all';
-  categories: string[] = ['all', 'web', 'mobile', 'design', 'ecommerce'];
+  // Propiedades para la búsqueda y filtrado
   searchTerm: string = '';
-  projects: Project[] = [
-    // Aquí se agregarán los proyectos en el futuro
-    // Ejemplo de estructura:
-    /*
+  selectedCategory: string = 'all';
+  
+  // Propiedades para paginación
+  currentPage: number = 1;
+  itemsPerPage: number = 6;
+  
+  // Datos de categorías con iconos azules de Icons8
+  categories: Category[] = [
+    { value: 'all', label: 'Todos', icon: 'https://img.icons8.com/fluency/48/null/select-all-files.png' },
+    { value: 'web', label: 'Desarrollo Web', icon: 'https://img.icons8.com/fluency/48/null/web.png' },
+    { value: 'mobile', label: 'Apps Móviles', icon: 'https://img.icons8.com/fluency/48/null/smartphone-tablet.png' },
+    { value: 'design', label: 'Diseño UI/UX', icon: 'https://img.icons8.com/fluency/48/null/design.png' },
+    { value: 'ecommerce', label: 'E-commerce', icon: 'https://img.icons8.com/fluency/48/null/shopping-cart.png' }
+  ];
+  
+  // Datos de los proyectos
+  allProjects: Project[] = [
     {
-      id: 'project-1',
-      title: 'E-commerce Platform',
-      description: 'A full-featured e-commerce platform built with Angular and Node.js',
-      shortDescription: 'Modern e-commerce solution',
-      imageUrl: '/assets/projects/ecommerce.jpg',
-      category: 'ecommerce',
-      technologies: [
-        { name: 'Angular', icon: 'angular-icon' },
-        { name: 'Node.js', icon: 'nodejs-icon' }
-      ],
-      demoUrl: 'https://demo.example.com',
-      githubUrl: 'https://github.com/example',
-      liveUrl: 'https://live.example.com',
+      id: 1,
+      title: 'Escuela Profesional de Dibujo S.C.',
+      description: 'Plataforma para escuelas de dibujo que gestiona cursos, inscripciones en línea y seguimiento académico. Incluye panel para docentes, exhibición de trabajos y detalles sobre la institución y sus ubicaciones.',
+      imageUrl: 'img/EPD_sitioweb.avif',
+      technologies: ['Angular', 'Tailwind CSS', 'TypeScript', 'PHP', 'CSS3'],
+      demoUrl: 'https://epd.edu.mx',
+      detailsUrl: '/projects/escuela-dibujo',
+      category: 'web',
       featured: true,
-      completionDate: new Date('2024-01-15'),
-      clientName: 'Tech Solutions Inc.',
-      testimonial: {
-        text: 'Excellent work and outstanding results',
-        author: 'John Doe',
-        position: 'CEO'
+      date: '2024-02-15'
+    },
+  ];
+  
+  // Lista de proyectos filtrados
+  filteredProjects: Project[] = [];
+  
+  // Proyectos a mostrar en la página actual
+  displayedProjects: Project[] = [];
+  
+  constructor() { }
+  
+  ngOnInit(): void {
+    // Inicializar proyectos y aplicar paginación
+    this.resetFilters();
+    window.scrollTo(0, 0);
+  }
+  
+  // Método para filtrar por categoría
+  filterByCategory(category: string): void {
+    this.selectedCategory = category;
+    this.currentPage = 1; // Volver a la primera página al cambiar filtros
+    this.filterProjects();
+  }
+  
+  // Método para filtrar proyectos combinando búsqueda y categoría
+  filterProjects(): void {
+    const searchLower = this.searchTerm.toLowerCase().trim();
+    
+    this.filteredProjects = this.allProjects.filter(project => {
+      // Filtro por término de búsqueda 
+      const matchesSearch = searchLower === '' || 
+        project.title.toLowerCase().includes(searchLower) ||
+        project.description.toLowerCase().includes(searchLower) ||
+        project.technologies.some(tech => tech.toLowerCase().includes(searchLower)) ||
+        project.category.toLowerCase().includes(searchLower);
+      
+      // Filtro por categoría
+      const matchesCategory = this.selectedCategory === 'all' || project.category === this.selectedCategory;
+      
+      return matchesSearch && matchesCategory;
+    });
+    
+    // Ordenar los proyectos (primero destacados, luego por fecha)
+    this.filteredProjects.sort((a, b) => {
+      // Primero ordenar por destacado
+      if (a.featured && !b.featured) return -1;
+      if (!a.featured && b.featured) return 1;
+      
+      // Luego ordenar por fecha (más reciente primero)
+      const dateA = a.date ? new Date(a.date).getTime() : 0;
+      const dateB = b.date ? new Date(b.date).getTime() : 0;
+      return dateB - dateA;
+    });
+    
+    // Aplicar paginación
+    this.applyPagination();
+  }
+  
+  // Método para aplicar paginación
+  applyPagination(): void {
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    const endIndex = startIndex + this.itemsPerPage;
+    this.displayedProjects = this.filteredProjects.slice(startIndex, endIndex);
+  }
+  
+  // Método para reiniciar filtros
+  resetFilters(): void {
+    this.searchTerm = '';
+    this.selectedCategory = 'all';
+    this.currentPage = 1;
+    this.filteredProjects = [...this.allProjects];
+    this.applyPagination();
+  }
+  
+  // Métodos para navegación de paginación
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+      this.applyPagination();
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  
+  nextPage(): void {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+      this.applyPagination();
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  
+  prevPage(): void {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+      this.applyPagination();
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  
+  // Getters para paginación
+  get totalPages(): number {
+    return Math.ceil(this.filteredProjects.length / this.itemsPerPage);
+  }
+  
+  get startItem(): number {
+    return (this.currentPage - 1) * this.itemsPerPage + 1;
+  }
+  
+  get endItem(): number {
+    const end = this.currentPage * this.itemsPerPage;
+    return end > this.filteredProjects.length ? this.filteredProjects.length : end;
+  }
+  
+  get pagesArray(): number[] {
+    // Limitar la cantidad de páginas mostradas (máximo 5)
+    const maxPages = 5;
+    const pages: number[] = [];
+    
+    if (this.totalPages <= maxPages) {
+      // Si hay 5 o menos páginas, mostrar todas
+      for (let i = 1; i <= this.totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Si hay más de 5 páginas, mostrar un rango centrado en la página actual
+      let start = Math.max(this.currentPage - Math.floor(maxPages / 2), 1);
+      let end = start + maxPages - 1;
+      
+      // Ajustar si llegamos al final
+      if (end > this.totalPages) {
+        end = this.totalPages;
+        start = Math.max(end - maxPages + 1, 1);
+      }
+      
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
       }
     }
-    */
-  ];
-
-  filteredProjects: Project[] = [];
-
-  constructor() {
-    this.filteredProjects = this.projects;
+    
+    return pages;
   }
-
-  ngOnInit(): void {
-    this.filterProjects();
-    window.scrollTo(0, 0);
-
-  }
-
-  filterProjects(): void {
-    this.filteredProjects = this.projects.filter(project => {
-      const matchesCategory = this.selectedCategory === 'all' || project.category === this.selectedCategory;
-      const matchesSearch = project.title.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-                          project.description.toLowerCase().includes(this.searchTerm.toLowerCase());
-      return matchesCategory && matchesSearch;
-    });
-  }
-
-  getFeaturedProjects(): Project[] {
-    return this.projects.filter(project => project.featured);
-  }
-
-  onCategoryChange(category: string): void {
-    this.selectedCategory = category;
-    this.filterProjects();
-  }
-
-  onSearch(term: string): void {
-    this.searchTerm = term;
-    this.filterProjects();
-  }
-
-  getCategoryIcon(category: string): string {
-    switch(category) {
-      case 'web':
-        return 'M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9';
-      case 'mobile':
-        return 'M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z';
-      case 'design':
-        return 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z';
-      case 'ecommerce':
-        return 'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z';
-      default:
-        return 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0h10';
-    }
+  
+  // Método para obtener icono de tecnología usando Icons8
+  getTechnologyIcon(tech: string): string {
+    // Mapa de iconos utilizando Icons8 (tonos azules priorizados)
+    const icons: {[key: string]: string} = {
+      'Angular': 'https://img.icons8.com/color/48/null/angularjs.png',
+      'Tailwind CSS': 'https://img.icons8.com/color/48/null/tailwindcss.png',
+      'TypeScript': 'https://img.icons8.com/color/48/null/typescript.png',
+      'PHP': 'https://img.icons8.com/color/48/null/php.png',
+      'CSS3': 'https://img.icons8.com/color/48/null/css3.png',
+      'React': 'https://img.icons8.com/external-tal-revivo-color-tal-revivo/48/null/external-react-a-javascript-library-for-building-user-interfaces-logo-color-tal-revivo.png',
+      'Next.js': 'https://img.icons8.com/color/48/null/nextjs.png',
+      'Stripe': 'https://img.icons8.com/color/48/null/stripe.png',
+      'Firebase': 'https://img.icons8.com/color/48/null/firebase.png',
+      'Styled Components': 'https://img.icons8.com/color/48/null/styled-components.png',
+      'React Native': 'https://img.icons8.com/external-tal-revivo-color-tal-revivo/48/null/external-react-a-javascript-library-for-building-user-interfaces-logo-color-tal-revivo.png',
+      'Redux': 'https://img.icons8.com/color/48/null/redux.png',
+      'Node.js': 'https://img.icons8.com/fluency/48/null/node-js.png',
+      'MongoDB': 'https://img.icons8.com/color/48/null/mongodb.png',
+      'Express': 'https://img.icons8.com/color/48/null/express.png',
+      'Figma': 'https://img.icons8.com/color/48/null/figma.png',
+      'Adobe XD': 'https://img.icons8.com/color/48/null/adobe-xd.png',
+      'Sketch': 'https://img.icons8.com/color/48/null/sketch.png',
+      'Bootstrap': 'https://img.icons8.com/color/48/null/bootstrap.png',
+      'PostgreSQL': 'https://img.icons8.com/color/48/null/postgresql.png',
+      'Socket.io': 'https://img.icons8.com/color/48/null/socket-io.png',
+      'Flutter': 'https://img.icons8.com/color/48/null/flutter.png',
+      'Google Maps API': 'https://img.icons8.com/color/48/null/google-maps.png',
+      'GetX': 'https://img.icons8.com/color/48/null/api-settings.png'
+    };
+    
+    // URL para ícono genérico en caso de no encontrar uno específico (en azul)
+    const defaultIcon = 'https://img.icons8.com/fluency/48/null/code.png';
+    
+    // Retornar el ícono o el genérico si no existe
+    return icons[tech] || defaultIcon;
   }
 }
