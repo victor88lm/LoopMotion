@@ -9,6 +9,7 @@ import { QuotationSummaryComponent } from './components/quotation-summary/quotat
 import { ContactFormComponent } from './components/contact-form/contact-form.component';
 import { TermsAndConditionsComponent } from './components/terms-and-conditions/terms-and-conditions.component';
 import { PortfolioComponent } from './components/portfolio/portfolio.component';
+import { ProjectDetailComponent } from './components/project-detail/project-detail.component';
 import { LoginComponent } from './admin/login/login.component';
 import { DashboardComponent } from './admin/dashboard/dashboard.component';
 import { AuthGuard } from './Core/guards/auth.guard';
@@ -35,6 +36,7 @@ const routes: Routes = [
   { path: 'contact', component: ContactFormComponent },
   { path: 'terms', component: TermsAndConditionsComponent },
   { path: 'portfolio', component: PortfolioComponent },
+  { path: 'projects/:id', component: ProjectDetailComponent }, // Nueva ruta para detalles de proyecto
   { path: 'loop-admin', component: LoginComponent },
   { path: 'faq', component: FaqComponent},
   { path: 'Fundadores', component: FundadoresComponent},

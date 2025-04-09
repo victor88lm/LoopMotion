@@ -31,6 +31,7 @@ import { AuthGuard } from './Core/guards/auth.guard';
 import { FaqComponent } from './components/faq/faq.component';
 import { FundadoresComponent } from './components/fundadores/fundadores.component';
 import { DesarrollowebComponent } from './components/desarrolloweb/desarrolloweb.component';
+import { ProjectDetailComponent } from './components/project-detail/project-detail.component';
 
 @NgModule({
   declarations: [
@@ -51,7 +52,8 @@ import { DesarrollowebComponent } from './components/desarrolloweb/desarrolloweb
     DashboardComponent,
     FaqComponent,
     FundadoresComponent,
-    DesarrollowebComponent
+    DesarrollowebComponent,
+    ProjectDetailComponent
   ],
   imports: [
     BrowserModule,

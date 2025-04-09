@@ -1,18 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-
-// Interfaz para el modelo de proyecto
-interface Project {
-  id: number;
-  title: string;
-  description: string;
-  imageUrl: string;
-  technologies: string[];
-  demoUrl: string;
-  detailsUrl: string;
-  category: string;
-  featured?: boolean;
-  date?: string;
-}
+import { ProjectService, Project } from '../../Core/services/project.service';
 
 // Interfaz para categorías
 interface Category {
@@ -34,6 +21,7 @@ export class PortfolioComponent implements OnInit {
   // Propiedades para paginación
   currentPage: number = 1;
   itemsPerPage: number = 6;
+  isLoading: boolean = true;
   
   // Datos de categorías con iconos azules de Icons8
   categories: Category[] = [
@@ -45,33 +33,31 @@ export class PortfolioComponent implements OnInit {
   ];
   
   // Datos de los proyectos
-  allProjects: Project[] = [
-    {
-      id: 1,
-      title: 'Escuela Profesional de Dibujo S.C.',
-      description: 'Plataforma para escuelas de dibujo que gestiona cursos, inscripciones en línea y seguimiento académico. Incluye panel para docentes, exhibición de trabajos y detalles sobre la institución y sus ubicaciones.',
-      imageUrl: 'img/EPD_sitioweb.avif',
-      technologies: ['Angular', 'Tailwind CSS', 'TypeScript', 'PHP', 'CSS3'],
-      demoUrl: 'https://epd.edu.mx',
-      detailsUrl: '/projects/escuela-dibujo',
-      category: 'web',
-      featured: true,
-      date: '2024-02-15'
-    },
-  ];
-  
-  // Lista de proyectos filtrados
+  allProjects: Project[] = [];
   filteredProjects: Project[] = [];
-  
-  // Proyectos a mostrar en la página actual
   displayedProjects: Project[] = [];
   
-  constructor() { }
+  constructor(private projectService: ProjectService) { }
   
   ngOnInit(): void {
-    // Inicializar proyectos y aplicar paginación
-    this.resetFilters();
+    this.loadProjects();
     window.scrollTo(0, 0);
+  }
+  
+  // Cargar los proyectos del servicio
+  loadProjects(): void {
+    this.isLoading = true;
+    this.projectService.getProjects().subscribe(
+      projects => {
+        this.allProjects = projects;
+        this.resetFilters();
+        this.isLoading = false;
+      },
+      error => {
+        console.error('Error al cargar los proyectos:', error);
+        this.isLoading = false;
+      }
+    );
   }
   
   // Método para filtrar por categoría
@@ -199,40 +185,8 @@ export class PortfolioComponent implements OnInit {
     return pages;
   }
   
-  // Método para obtener icono de tecnología usando Icons8
+  // Método para obtener icono de tecnología usando el servicio
   getTechnologyIcon(tech: string): string {
-    // Mapa de iconos utilizando Icons8 (tonos azules priorizados)
-    const icons: {[key: string]: string} = {
-      'Angular': 'https://img.icons8.com/color/48/null/angularjs.png',
-      'Tailwind CSS': 'https://img.icons8.com/color/48/null/tailwindcss.png',
-      'TypeScript': 'https://img.icons8.com/color/48/null/typescript.png',
-      'PHP': 'https://img.icons8.com/color/48/null/php.png',
-      'CSS3': 'https://img.icons8.com/color/48/null/css3.png',
-      'React': 'https://img.icons8.com/external-tal-revivo-color-tal-revivo/48/null/external-react-a-javascript-library-for-building-user-interfaces-logo-color-tal-revivo.png',
-      'Next.js': 'https://img.icons8.com/color/48/null/nextjs.png',
-      'Stripe': 'https://img.icons8.com/color/48/null/stripe.png',
-      'Firebase': 'https://img.icons8.com/color/48/null/firebase.png',
-      'Styled Components': 'https://img.icons8.com/color/48/null/styled-components.png',
-      'React Native': 'https://img.icons8.com/external-tal-revivo-color-tal-revivo/48/null/external-react-a-javascript-library-for-building-user-interfaces-logo-color-tal-revivo.png',
-      'Redux': 'https://img.icons8.com/color/48/null/redux.png',
-      'Node.js': 'https://img.icons8.com/fluency/48/null/node-js.png',
-      'MongoDB': 'https://img.icons8.com/color/48/null/mongodb.png',
-      'Express': 'https://img.icons8.com/color/48/null/express.png',
-      'Figma': 'https://img.icons8.com/color/48/null/figma.png',
-      'Adobe XD': 'https://img.icons8.com/color/48/null/adobe-xd.png',
-      'Sketch': 'https://img.icons8.com/color/48/null/sketch.png',
-      'Bootstrap': 'https://img.icons8.com/color/48/null/bootstrap.png',
-      'PostgreSQL': 'https://img.icons8.com/color/48/null/postgresql.png',
-      'Socket.io': 'https://img.icons8.com/color/48/null/socket-io.png',
-      'Flutter': 'https://img.icons8.com/color/48/null/flutter.png',
-      'Google Maps API': 'https://img.icons8.com/color/48/null/google-maps.png',
-      'GetX': 'https://img.icons8.com/color/48/null/api-settings.png'
-    };
-    
-    // URL para ícono genérico en caso de no encontrar uno específico (en azul)
-    const defaultIcon = 'https://img.icons8.com/fluency/48/null/code.png';
-    
-    // Retornar el ícono o el genérico si no existe
-    return icons[tech] || defaultIcon;
+    return this.projectService.getTechnologyIcon(tech);
   }
 }
